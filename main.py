@@ -14,7 +14,7 @@ app.config['JSON_SORT_KEYS'] = False
 
 @app.route('/mine', methods=['POST'])
 def mine():
-    b = blockchain.generate_next_block(str(request.data))
+    b = blockchain.generate_next_block(str(request.get_data().decode("utf-8")))
     
     response = {
         'message': "New Block Created"
