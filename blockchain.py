@@ -5,6 +5,7 @@ import json
 from flask import Flask, jsonify, request
 
 
+
 class Block:
     def __init__(self, index, hash, previous_hash, timestamp, data):
         self.index = index
@@ -20,10 +21,11 @@ class Block:
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False, indent=4)
         
         
+Blockchain = list[Block]
 
 genesis_block = Block(0, "3ea9cb91d5ac70f93f00370ddb01661e2a3a16bcbac6a5412b0d5b66ee4ffa00", "", 1631511032.099209, "Genesis")
 
-blockchain = [genesis_block]
+blockchain: Blockchain = [genesis_block]
 
 def calculate_hash(index, previous_hash, timestamp, data):
     block_string = str(index)+str(previous_hash)+str(timestamp)+str(data)
@@ -36,7 +38,8 @@ def get_latest_block():
     return blockchain[-1]
 
 def add_block(block):
-    blockchain.append(block)
+    if is_valid_block(block, get_latest_block()):
+        blockchain.append(block)
 
 def generate_next_block(data):
     previous = get_latest_block()
@@ -75,5 +78,12 @@ def is_blockchain_valid(b):
     
     return True
 
-print (genesis_block.toJSON())
-print(json.loads(genesis_block.toJSON()))
+# Consensus replacement
+def replace_chain(newchain: Blockchain) -> None:
+    if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
+        print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
+        global blockchain 
+        blockchain = newchain
+    else:
+        print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
+        
