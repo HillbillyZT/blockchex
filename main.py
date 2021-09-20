@@ -20,7 +20,8 @@ def mine():
         'message': "New Block Created",
         'block': json.loads(b.toJSON())
     }
-    blockchain.calculate_difficulty_attempts(100)
+    #Uncomment line below to generate 100 blocks
+    #blockchain.calculate_difficulty_attempts(100)
 
     return jsonify(response), 200
 
