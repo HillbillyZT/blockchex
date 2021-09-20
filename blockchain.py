@@ -33,6 +33,10 @@ new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
 new_genesis.hash = calculate_hash_block(new_genesis)
 
 genesis_block = new_genesis
+
+#Global difficulty controls how hard it is to find a correct nonce to solve the hash
+#TODO make the difficulty scale based on how fast the previous block was solved
+#Maybe aim for 10-15 minute block times?
 GL_DIFFICULTY = 3
 
 blockchain: Blockchain = [genesis_block]
@@ -57,16 +61,10 @@ def solve_block(block: Block) -> None:
         block.nonce = block.nonce + 1
         block.hash = calculate_hash_block(block)
 
-# Chris: I've commented this out since it would only ever be used in the 
-# calculate_hash function. Use str(block) in the future, it's defined in
-# the __str__ function above.
-#
-# def to_string(data, timestamp, previous_hash):
-#     return "{0}\t{1}\t{2}".format(data, timestamp, previous_hash)
-
 def get_latest_block():
     return blockchain[-1]
 
+#Confirms block is valid before appending it
 def add_block(block):
     if is_valid_block(block, get_latest_block()):
         blockchain.append(block)
@@ -77,7 +75,8 @@ def generate_next_block(data: str):
     
     #Calculates nonce and hash
     solve_block(block)
-    
+
+    #Print the block to the console and add it to the chain
     print(block)
     add_block(block)
     return block

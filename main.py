@@ -9,6 +9,8 @@ app.config['JSON_SORT_KEYS'] = False
 
 #TODO ensure hashing consistency between pure dumps and JSON dumps
 #TODO p2p node conversations
+#TODO scaling block difficulty
+#TODO start PoS implementation
 
 @app.route('/mine', methods=['POST'])
 def mine():
