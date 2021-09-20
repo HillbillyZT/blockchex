@@ -6,59 +6,78 @@ from flask import Flask, jsonify, request
 
 
 class Block:
-    def __init__(self, index, hash, previous_hash, timestamp, data):
+    def __init__(self, index, hash, previous_hash, timestamp, data, difficulty, nonce=0):
         self.index = index
-        self.hash = hash
+        self.hash: str = hash
         self.previous_hash = previous_hash
         self.timestamp = timestamp
         self.data = data
+        self.difficulty = difficulty
+        self.nonce = nonce
 
+    #TODO(Chris) __dict__ string implementation + JSON interaction
     def __str__(self):
-        return str(self.index) + str(self.hash) + str(self.previous_hash) + str(self.timestamp) + str(self.data)
-
+        return str(self.index) + str(self.hash) + str(self.previous_hash) + str(self.timestamp) + str(self.data) + str(self.difficulty) + str(self.nonce)
+        
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
+def calculate_hash_block(block: Block) -> str:
+    block_string = str(block)
+    return sha256(block_string.encode()).hexdigest()
 
 Blockchain = list[Block]
 
-genesis_block = Block(0, "0" * 64, "", time.time(), "Genesis")
+timestamp = time.time()
+new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
+new_genesis.hash = calculate_hash_block(new_genesis)
+
+genesis_block = new_genesis
+GL_DIFFICULTY = 3
 
 blockchain: Blockchain = [genesis_block]
 
-def is_hash_correct(hash):
-    return (hash.startswith('0' * 3))
+def calculate_hash(index, previous_hash, timestamp, data, difficulty, nonce):
+    block_string = str(index)+str(previous_hash)+str(timestamp)+str(data) + str(difficulty) + str(nonce)
+    return sha256(block_string.encode()).hexdigest()
 
-def calculate_hash(data, timestamp, previous_hash):
-    hash = ''
-    nonce = 0
+def calculate_hash_block(block: Block) -> str:
+    return calculate_hash(
+        block.index, block.previous_hash, block.timestamp, block.data, block.difficulty, block.nonce
+        )
 
-    while (not is_hash_correct(hash)):
-        temp = to_string(data, timestamp, previous_hash) + str(nonce)
-        hash = sha256(temp.encode()).hexdigest()
-        nonce += 1
-    return hash
+# previously is_hash_correct, new name is less confusing
+def confirm_difficulty(block: Block) -> bool:
+    return block.hash.startswith('0' * GL_DIFFICULTY)
 
-def to_string(data, timestamp, previous_hash):
-    return "{0}\t{1}\t{2}".format(data, timestamp, previous_hash)
+# Previously the new calculate_hash, now separate.
+# Defines the nonce and hash values for a new block
+def solve_block(block: Block) -> None:
+    while not confirm_difficulty(block):
+        block.nonce = block.nonce + 1
+        block.hash = calculate_hash_block(block)
 
-def calculate_hash_block(block: Block):
-    return calculate_hash(block.data, block.timestamp, block.previous_hash)
-
+# Chris: I've commented this out since it would only ever be used in the 
+# calculate_hash function. Use str(block) in the future, it's defined in
+# the __str__ function above.
+#
+# def to_string(data, timestamp, previous_hash):
+#     return "{0}\t{1}\t{2}".format(data, timestamp, previous_hash)
 
 def get_latest_block():
     return blockchain[-1]
-
 
 def add_block(block):
     if is_valid_block(block, get_latest_block()):
         blockchain.append(block)
 
-
-def generate_next_block(data):
+def generate_next_block(data: str):
     previous = get_latest_block()
-    block = Block(previous.index + 1, None, previous.hash, time.time(), data)
-    block.hash = calculate_hash_block(block)
+    block = Block(previous.index + 1, "", previous.hash, time.time(), data, GL_DIFFICULTY)
+    
+    #Calculates nonce and hash
+    solve_block(block)
+    
     print(block)
     add_block(block)
     return block
@@ -73,6 +92,8 @@ def is_valid_block(block, previous):
         return False
     elif (calculate_hash_block(block) != block.hash):
         logging.Logger.critical("Hash field is invalid")
+        return False
+    elif (not confirm_difficulty(block)):
         return False
     else:
         return True
@@ -96,6 +117,14 @@ def is_blockchain_valid(b):
             return False
 
     return True
+
+# On average, how many attempts does it take to get 3 leading 0s?
+def calculate_difficulty_attempts(runc: int) -> float: 
+    avg = 0
+    for i in range(0, runc):
+        generate_next_block(str(i))
+        avg += get_latest_block().nonce
+    return avg / runc
 
 # Consensus replacement
 # def replace_chain(newchain: Blockchain) -> None:

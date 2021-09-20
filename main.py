@@ -15,10 +15,11 @@ def mine():
     b = blockchain.generate_next_block(str(request.get_data().decode("utf-8")))
     
     response = {
-        'message': "New Block Created"
+        'message': "New Block Created",
+        'block': json.loads(b.toJSON())
     }
-    response = {**response, **json.loads(b.toJSON())}
-    
+    blockchain.calculate_difficulty_attempts(100)
+
     return jsonify(response), 200
 
 @app.route('/chain', methods=['GET'])
