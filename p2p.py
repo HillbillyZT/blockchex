@@ -8,10 +8,11 @@ from websockets import WebSocketServerProtocol
 
 logging.basicConfig(level=logging.INFO)
 
+# See comments above class: Server for more information on these cases
 class MessageType(Enum):
     QUERY_LATEST = 0
     QUERY_ALL = 1
-    RESPONSE_BLOCKCHAIN = 2
+    RESPONSE = 2
 
 class Message:
     def __init__(self, type: MessageType, data: str):
@@ -40,11 +41,11 @@ class Server:
     
     # Gets latest block, convert to JSON, encode as Message 
     def get_latest_as_message() -> Message:
-        return Message(MessageType.RESPONSE_BLOCKCHAIN, blockchain.get_latest_block().toJSON())
+        return Message(MessageType.RESPONSE, blockchain.get_latest_block().toJSON())
     
     # Gets full chain, in JSON, encoded as Message
     def get_blockchain_as_message() -> Message:
-        return Message(MessageType.RESPONSE_BLOCKCHAIN, blockchain.get_chain_as_json())
+        return Message(MessageType.RESPONSE, blockchain.get_chain_as_json())
     
     # This will handle all incoming and outgoing connections
     async def ws_handler(self, ws: WebSocketServerProtocol, host: str) -> None:
