@@ -29,6 +29,7 @@ def full_chain():
     for b in blockchain.blockchain:
         response.append(json.loads(b.toJSON()))
     
+    print(blockchain.get_chain_as_json())
     return jsonify(response), 200
 
 if __name__ == '__main__':
