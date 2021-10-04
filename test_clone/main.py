@@ -1,16 +1,18 @@
+from flask.app import Flask
 from werkzeug.wrappers import request
 import blockchain
 import json
 from flask import Flask, request, jsonify
 import p2p_static
-from threading import Thread
-import asyncio
-
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
+p2p_static.init_P2P()
+
+#TODO ensure hashing consistency between pure dumps and JSON dumps
 #TODO p2p node conversations
+#TODO PoW
 
 
 @app.route('/mine', methods=['POST'])
@@ -34,26 +36,11 @@ def full_chain():
     return jsonify(response), 200
 
 @app.route('/newPeer', methods=['POST'])
-async def add_new_peer():
-    await p2p_static.connect_to_peer("localhost", 4001)
-    #socketio.emit('my_event')
-    return "", 200
-
-@app.route('/getPeers', methods=['GET'])
-def get_peers():
-    print(p2p_static.connections)
-    return str(p2p_static.connections), 200
-
-@app.route('/checkConn', methods=['GET'])
-async def check_conn():
-    await p2p_static.connections[0].send("test")
-
-
-def start_flask():
-    app.run(host='0.0.0.0', port=5000)
+def add_new_peer():
+    p2p_static.connect_to_peer("localhost", 4000)
+    pass
 
 if __name__ == '__main__':
-    Thread(target=start_flask).start()
-    p2p_static.init_P2P()
+    app.run(host='0.0.0.0', port=5001)
     
     

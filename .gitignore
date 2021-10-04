@@ -142,3 +142,4 @@ cython_debug/
 
 # IDEA-extended files
 .idea/
+venv/

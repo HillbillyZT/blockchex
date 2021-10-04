@@ -40,18 +40,22 @@ class Server:
         self.connections.remove(ws)
     
     # Gets latest block, convert to JSON, encode as Message 
-    def get_latest_as_message() -> Message:
+    def response_latest_as_message() -> Message:
         return Message(MessageType.RESPONSE, blockchain.get_latest_block().toJSON())
     
     # Gets full chain, in JSON, encoded as Message
-    def get_blockchain_as_message() -> Message:
+    def response_blockchain_as_message() -> Message:
         return Message(MessageType.RESPONSE, blockchain.get_chain_as_json())
+    
+    def query_latest_as_message() -> Message:
+        return Message(MessageType.QUERY_LATEST, None)
     
     # This will handle all incoming and outgoing connections
     async def ws_handler(self, ws: WebSocketServerProtocol, host: str) -> None:
         # Add all new connections to the list of current live sockets
         await self.register(ws)
-        
+        for message in ws:
+            print(message)
         # Meat of the handler, TODO(Chris)
         try:
             pass
@@ -59,10 +63,12 @@ class Server:
         # When a connection ends, remove it from the list
         finally:
             await self.unregister(ws)    
-
+    
+server = None
 # We have a server waiting for incoming connection requests
 def init_P2P(websocket) -> None:
     if __name__ == '__main__':
+        global server
         server = Server()
         start_server = websockets.serve(server.ws_handler, 'localhost', 4000)
         loop = asyncio.get_event_loop()
