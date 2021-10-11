@@ -136,10 +136,10 @@ def init_P2P():
     loop.run_until_complete(start_server)
     loop.run_forever()
 
-# Testing client loop routine
-loop = asyncio.get_event_loop()
+def test_P2P():
+    # Testing client loop routine
+    loop = asyncio.get_event_loop()
 
-connection_queue.append("ws://localhost:4001")
-loop.run_until_complete(client_handler_loop())
-#loop.run_forever()
+    connection_queue.append("ws://localhost:4001")
+    loop.run_until_complete(client_handler_loop())
 
