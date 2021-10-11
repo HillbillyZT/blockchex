@@ -31,7 +31,7 @@ def full_chain():
     for b in blockchain.blockchain:
         response.append(json.loads(b.toJSON()))
     
-    return jsonify(response), 200
+    return blockchain.get_chain_as_json(), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
