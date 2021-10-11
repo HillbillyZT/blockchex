@@ -3,10 +3,13 @@ import websockets
 import asyncio
 import blockchain
 import logging
+import json
 from enum import Enum
 from websockets.legacy.server import WebSocketServerProtocol
 
 logging.basicConfig(level=logging.INFO)
+
+# TODO(Chris) add maximum connection limit
 
 # See comments above class: Server for more information on these cases
 class MessageType(Enum):
@@ -28,8 +31,14 @@ class Message:
 #    determine whether to add the new block to our chain, or check the integrity
 #    of the peer's chain
 
-# Maintain list of current socket connections
+# Set of incoming connection objects
 connections: list = set()
+
+# List of host URLs to receive active client connections
+connection_queue: list = []
+
+# Set of outgoing connection objects
+connections_outgoing = set()
 
 async def register(ws: WebSocketServerProtocol) -> None:
     connections.add(ws)
@@ -50,41 +59,73 @@ def response_blockchain_as_message() -> Message:
 def query_latest_as_message() -> Message:
     return Message(MessageType.QUERY_LATEST, None)
 
-# This will handle all incoming and outgoing connections
+# Server side handler
+# This will handle all incoming connections
 async def ws_handler(ws: WebSocketServerProtocol, host: str) -> None:
     # Add all new connections to the list of current live sockets
     #await register(ws)
     
-    for message in ws:
-        print(message)
+    
         
     # Meat of the handler, TODO(Chris)
     try:
-        pass
+        for message in ws:
+            print(message)
     
     # When a connection ends, remove it from the list
     finally:
         await unregister(ws)    
 
+
+async def client_handler_loop() -> None:
+    while True:
+        # For any inbound connections that we haven't reciprocated
+        while connection_queue:
+            conn = await websockets.connect(connection_queue.pop(0))
+            
+            # Register new current connection
+            connections_outgoing.add(conn)
+            logging.info(f"{conn.remote_address} has connected.")
+            
+            # Do all initial connection items here
+            # This includes sending blockchain queries, etc
+            # This is outgoing connections; no blockchain responses will be produced from here
+            # Blockchain responses will, however, be handled here
+        
+        
+        # Here, handle looped behavior for all outgoing connections
+        while connections_outgoing:
+            for socket in connections_outgoing:
+                if socket.closed:
+                    connections_outgoing.remove(socket)
+                    
+                    # Unregister connection if terminated
+                    logging.info(f"{socket.remote_address} has disconnected.")
+                
+                await socket.send("ping")
+                # pong = await socket.recv()
+                # print(pong)
+                
+                async for message in socket:
+                    if(message == "pong"):
+                        logging.info(message)
+                    else:
+                        print(message)
+                
+                pass
+
 start_server: Any
-
-
 async def connect_to_peer(hostname: str, port: int) -> None:
     url = f"ws://{hostname}:{port}"
     
     # TODO(Chris) try block here, finally block to unreg
     try:
-        websocket = await websockets.connect(url)
-        await register(websocket)
-        await websocket.send("test")
-        # async with websockets.connect(url) as websocket:
-        #     await register(websocket)
-        #     await websocket.send("test")
-        #     start_server.sockets.append(websocket)
+        async with websockets.connect(url) as websocket:
+            await register(websocket)
+            await websocket.send("test")
             
     finally:
-        pass
-        # await unregister(websocket)
+        await unregister(websocket)
     
 # We have a server waiting for incoming connection requests
 
@@ -95,6 +136,10 @@ def init_P2P():
     loop.run_until_complete(start_server)
     loop.run_forever()
 
+# Testing client loop routine
+loop = asyncio.get_event_loop()
 
-
+connection_queue.append("ws://localhost:4001")
+loop.run_until_complete(client_handler_loop())
+#loop.run_forever()
 

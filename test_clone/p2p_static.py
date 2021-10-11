@@ -51,6 +51,10 @@ def response_blockchain_as_message() -> Message:
 def query_latest_as_message() -> Message:
     return Message(MessageType.QUERY_LATEST, None)
 
+def message_as_json(m: Message) -> str:
+    temp = {'message_type': m.type.name, 'message': json.loads(m.data)}
+    return json.dumps(temp, sort_keys=False, indent=4)
+
 async def message_printer(ws: WebSocketServerProtocol):
     async for message in ws:
         print(message)
@@ -59,12 +63,15 @@ async def message_printer(ws: WebSocketServerProtocol):
 async def ws_handler(ws: WebSocketServerProtocol, host: str) -> None:
     # Add all new connections to the list of current live sockets
     await register(ws)
-    print(connections)
-    print(host)
         
     # Meat of the handler, TODO(Chris)
     try:
-        await message_printer(ws)
+        async for message in ws:
+            if(message == "ping"):
+                await ws.send("pong")
+                await ws.send(message_as_json(response_latest_as_message()))
+            print(message)
+        # await message_printer(ws)
     
     # When a connection ends, remove it from the list
     finally:
