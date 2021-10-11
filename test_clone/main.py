@@ -1,18 +1,15 @@
-from flask.app import Flask
 from werkzeug.wrappers import request
 import blockchain
 import json
 from flask import Flask, request, jsonify
-import p2p_static
+import p2p_http
+from threading import Thread
+
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
-p2p_static.init_P2P()
-
-#TODO ensure hashing consistency between pure dumps and JSON dumps
 #TODO p2p node conversations
-#TODO PoW
 
 
 @app.route('/mine', methods=['POST'])
@@ -37,10 +34,31 @@ def full_chain():
 
 @app.route('/newPeer', methods=['POST'])
 def add_new_peer():
-    p2p_static.connect_to_peer("localhost", 4000)
-    pass
+    p2p_http.init_target(request.data.decode("utf-8"))
+    return "", 200
+
+@app.route('/getPeers', methods=['GET'])
+def get_peers():
+    return p2p_http.targets, 200
+
+
+# End-points for P2P communications    
+@app.route('/queryLatest', methods=['GET'])
+def receive_query_latest():
+    return blockchain.get_latest_block().toJSON(), 200
+    
+@app.route('/queryAll', methods=['GET'])
+def receive_query_all():
+    if request.remote_addr not in p2p_http.targets:
+        p2p_http.init_target(request.remote_addr)
+    return blockchain.get_chain_as_json(), 200
+
+@app.route('/receiveBlock', methods=['POST'])
+def receive_broadcast_block():
+    return "", 200
+
+def start_flask():
+    app.run(host='0.0.0.0', port=5000)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
-    
-    
+    Thread(target=start_flask).start()
