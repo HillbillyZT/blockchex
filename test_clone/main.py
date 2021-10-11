@@ -58,7 +58,7 @@ def receive_broadcast_block():
     return "", 200
 
 def start_flask():
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)
 
 if __name__ == '__main__':
     Thread(target=start_flask).start()

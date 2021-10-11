@@ -25,7 +25,9 @@ def query_latest(target: str) -> blockchain.Block:
     
 # TODO(Chris)
 def query_all(target: str) -> blockchain.Blockchain:
-    pass
+    r = requests.get(f"{target}/queryLatest")
+    j = r.json()
+    print(j)
 
 def add_block_to_chain(b: blockchain.Block) -> bool:
     if blockchain.is_valid_block(b, blockchain.get_latest_block()):

@@ -37,12 +37,21 @@ def calculate_hash_block(block: Block):
 def get_latest_block():
     return blockchain[-1]
 
+def convert_chain_to_json(chain: Blockchain) -> str:
+    return json.dumps(chain, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+
 def get_chain_as_json():
-    response = []
-    for b in blockchain:
-        response.append(json.loads(b.toJSON()))
-    #return str(jsonify(response).data.decode("utf-8"))
-    return json.dumps(blockchain, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+    return convert_chain_to_json(blockchain)
+
+def deserialize_block(d: dict) -> Block:
+    b = Block(d['index'], d['hash'], d['previous_hash'], d['timestamp'], d['data'])
+    return b
+
+def deserialize_blockchain(bclist: list) -> Blockchain:
+    bc_ds: Blockchain = []
+    for block_dict in bclist:
+        bc_ds.append(deserialize_block(block_dict))
+    return bc_ds
 
 def add_block(block):
     if is_valid_block(block, get_latest_block()):
@@ -85,11 +94,15 @@ def is_blockchain_valid(b):
     
     return True
 
+
+
 # Consensus replacement
-# def replace_chain(newchain: Blockchain) -> None:
+# def replace_chain(newchain: Blockchain) -> bool:
 #     if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
 #         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
-#         global blockchain 
+#         # global blockchain 
 #         blockchain = newchain
+#         return True
 #     else:
 #         print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
+#         return False
