@@ -18,7 +18,8 @@ layout =   [[sg.Menu(menu_def, tearoff=True)],
             [sg.Button('Download Current Chain')],
             [sg.Button('Close')]   ]
 
-window = sg.Window('Mining Client', layout)
+window = sg.Window('Mining Client', layout, size=(600,400))
+
 
 miningURL='http://192.168.0.9:5000/mine'
 chainURL='http://192.168.0.9:5000/chain'
