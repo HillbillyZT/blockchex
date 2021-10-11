@@ -1,9 +1,12 @@
 from typing import Any
 import websockets
 import asyncio
+
+from websockets.legacy.client import WebSocketClientProtocol
 import blockchain
 import logging
 import json
+from threading import Thread
 from enum import Enum
 from websockets.legacy.server import WebSocketServerProtocol
 
@@ -78,7 +81,7 @@ async def ws_handler(ws: WebSocketServerProtocol, host: str) -> None:
 
 
 async def client_handler_loop() -> None:
-    while True:
+    while True:  
         # For any inbound connections that we haven't reciprocated
         while connection_queue:
             conn = await websockets.connect(connection_queue.pop(0))
@@ -92,27 +95,55 @@ async def client_handler_loop() -> None:
             # This is outgoing connections; no blockchain responses will be produced from here
             # Blockchain responses will, however, be handled here
         
+        for socket in connections_outgoing:
+            if socket.closed:
+                connections_outgoing.remove(socket)
+                
+                # Unregister connection if terminated
+                logging.info(f"{socket.remote_address} has disconnected.")
+            
+            await socket.send("ping")
+            # pong = await socket.recv()
+            # print(pong)
+            
+            async for message in socket:
+                if(message == "pong"):
+                    logging.info(message)
+                else:
+                    print(message)
+
+async def client_handler(host: str) -> None:
+    socket = await websockets.connect(host)
+    print(socket.remote_address)
+    connections_outgoing.add(socket)
+    while True:
+        if socket.closed:
+                connections_outgoing.remove(socket)
+                
+                # Unregister connection if terminated
+                logging.info(f"{socket.remote_address} has disconnected.")
+            
+        await socket.send("ping")
+        pong = asyncio.wait_for(socket.recv(), timeout=5)
+        # pong = await socket.recv()
+        # print(pong)
         
-        # Here, handle looped behavior for all outgoing connections
-        while connections_outgoing:
-            for socket in connections_outgoing:
-                if socket.closed:
-                    connections_outgoing.remove(socket)
-                    
-                    # Unregister connection if terminated
-                    logging.info(f"{socket.remote_address} has disconnected.")
-                
-                await socket.send("ping")
-                # pong = await socket.recv()
-                # print(pong)
-                
-                async for message in socket:
-                    if(message == "pong"):
-                        logging.info(message)
-                    else:
-                        print(message)
-                
-                pass
+        async for message in socket:
+            if(message == "pong"):
+                logging.info(message)
+            else:
+                await print(message)
+        
+        #await asyncio.sleep(1)
+
+    
+async def new_client_connection(host: str) -> None:
+    loop = asyncio.get_event_loop()
+    loop.set_debug(True)
+    loop.create_task(client_handler(host))
+    
+    # asyncio.run_coroutine_threadsafe((client_handler(conn)), loop)
+    
 
 start_server: Any
 async def connect_to_peer(hostname: str, port: int) -> None:
@@ -133,13 +164,23 @@ def init_P2P():
     global start_server
     start_server = websockets.serve(ws_handler, 'localhost', 4000)
     loop = asyncio.get_event_loop()
+    loop.set_debug(True)
     loop.run_until_complete(start_server)
     loop.run_forever()
 
 def test_P2P():
     # Testing client loop routine
     loop = asyncio.get_event_loop()
+    print("test")
 
     connection_queue.append("ws://localhost:4001")
     loop.run_until_complete(client_handler_loop())
+    loop.run_forever()
 
+def test2_P2P():
+    loop = asyncio.get_event_loop()
+    loop.set_debug(True)
+    
+    asyncio.run(client_handler("ws://localhost:4001"))
+
+test2_P2P()

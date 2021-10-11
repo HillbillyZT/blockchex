@@ -35,8 +35,9 @@ def full_chain():
 
 @app.route('/newPeer', methods=['POST'])
 async def add_new_peer():
-    # await p2p_static.connect_to_peer("localhost", 4001)
-    p2p_static.connection_queue.append("ws://localhost:4001")
+    await p2p_static.new_client_connection("ws://localhost:4001")
+    # Thread(target=p2p_static.new_client_connection("ws://localhost:4001")).start()
+    
     print(p2p_static.connection_queue, p2p_static.connections_outgoing)
     #socketio.emit('my_event')
     return "", 200
@@ -56,7 +57,7 @@ def start_flask():
 
 if __name__ == '__main__':
     Thread(target=start_flask).start()
-    Thread(target=p2p_static.test_P2P()).start()
+    # Thread(target=p2p_static.test_P2P()).start()
     p2p_static.init_P2P()
     
     
