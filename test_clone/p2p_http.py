@@ -1,4 +1,4 @@
-import blockchain
+import blockchain as bc
 import logging
 import requests
 
@@ -10,28 +10,29 @@ logging.basicConfig(level=logging.INFO)
 targets = set()
 
 # TODO(Chris)
-def broadcast_block(b: blockchain.Block) -> None:
+def broadcast_block(b: bc.Block) -> None:
     for target in targets:
         # we do some POST requests
         r = requests.post(f"{target}/receiveBlock", data=b.toJSON())
 
 
-def query_latest(target: str) -> blockchain.Block:
+def query_latest(target: str) -> bc.Block:
     # implement request for latest, handle data
     r = requests.get(f"{target}/queryLatest")
     j = r.json()
-    b = blockchain.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'])
+    b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'])
     return b
     
 # TODO(Chris)
-def query_all(target: str) -> blockchain.Blockchain:
-    r = requests.get(f"{target}/queryLatest")
+def query_all(target: str) -> bc.Blockchain:
+    r = requests.get(f"{target}/queryAll")
     j = r.json()
-    print(j)
+    j_s: bc.Blockchain = bc.deserialize_blockchain(j)
+    return j_s
 
-def add_block_to_chain(b: blockchain.Block) -> bool:
-    if blockchain.is_valid_block(b, blockchain.get_latest_block()):
-        blockchain.add_block(b)
+def add_block_to_chain(b: bc.Block) -> bool:
+    if bc.is_valid_block(b, bc.get_latest_block()):
+        bc.add_block(b)
         return True
     else:
         return False
@@ -45,18 +46,18 @@ def handle_query_latest(target):
 # When we need to request full blockchain
 def handle_query_all(target):
     chain = query_all(target)
-    # TODO(Chris) ....
-    pass
+    bc.replace_chain(chain)
 
-def compare_heights(peer_latest: blockchain.Block, target: str) -> None:
-    self_latest = blockchain.get_latest_block()
+
+def compare_heights(peer_latest: bc.Block, target: str) -> None:
+    self_latest = bc.get_latest_block()
         
-    if not blockchain.is_block_structure_valid(peer_latest):
+    if not bc.is_block_structure_valid(peer_latest):
         logging.info("Block structure not valid.")
         return
     
     peer_height = peer_latest.index
-    self_height = blockchain.get_latest_block().index
+    self_height = bc.get_latest_block().index
     
     if peer_height > self_height:
         if peer_latest.previous_hash == self_latest.hash:
@@ -83,6 +84,13 @@ def init_target(target: str) -> None:
 
 
 def init_P2P():
+    print("got here!")
     for target in targets:
         # Run Connection Startup Tasks
-        init_target(target)
+        try:
+            init_target(target)
+        except Exception as e:
+            logging.info(e)
+
+# Testing
+# query_all("http://localhost:5001")

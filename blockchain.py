@@ -97,12 +97,13 @@ def is_blockchain_valid(b):
 
 
 # Consensus replacement
-# def replace_chain(newchain: Blockchain) -> bool:
-#     if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
-#         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
-#         # global blockchain 
-#         blockchain = newchain
-#         return True
-#     else:
-#         print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
-#         return False
+def replace_chain(newchain: Blockchain) -> bool:
+    global blockchain
+    if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
+        print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
+        
+        blockchain = newchain
+        return True
+    else:
+        print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
+        return False

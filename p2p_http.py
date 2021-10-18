@@ -46,8 +46,8 @@ def handle_query_latest(target):
 # When we need to request full blockchain
 def handle_query_all(target):
     chain = query_all(target)
-    # TODO(Chris) ....
-    pass
+    bc.replace_chain(chain)
+
 
 def compare_heights(peer_latest: bc.Block, target: str) -> None:
     self_latest = bc.get_latest_block()
@@ -79,14 +79,19 @@ def init_target(target: str) -> None:
     targets.add(target)
     try:
         handle_query_latest(target)
-    except:
+    except Exception as e:
+        print(e)
         targets.remove(target)
 
 
 def init_P2P():
+    print("got here!")
     for target in targets:
         # Run Connection Startup Tasks
-        init_target(target)
+        try:
+            init_target(target)
+        except Exception as e:
+            logging.info(e)
 
 # Testing
-query_all("http://localhost:5001")
+# query_all("http://localhost:5001")

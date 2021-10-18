@@ -1,9 +1,10 @@
 from werkzeug.wrappers import request
-import blockchain
+import blockchain as blockchain
 import json
 from flask import Flask, request, jsonify
 import p2p_http
 from threading import Thread
+import time
 
 
 app = Flask(__name__)
@@ -62,3 +63,6 @@ def start_flask():
 
 if __name__ == '__main__':
     Thread(target=start_flask).start()
+    while True:
+        p2p_http.init_P2P()
+        time.sleep(60)
