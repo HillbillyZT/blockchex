@@ -27,10 +27,6 @@ def mine():
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
-    response = []
-    for b in blockchain.blockchain:
-        response.append(json.loads(b.toJSON()))
-    
     return blockchain.get_chain_as_json(), 200
 
 if __name__ == '__main__':

@@ -68,7 +68,6 @@ def get_chain_as_json():
     response = []
     for b in blockchain:
         response.append(json.loads(b.toJSON()))
-    #return str(jsonify(response).data.decode("utf-8"))
     return json.dumps(blockchain, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
 #Confirms block is valid before appending it
