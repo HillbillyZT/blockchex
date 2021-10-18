@@ -28,12 +28,13 @@ def mineBlock():
     r = requests.post(miningURL)
     print("Mining successful")
 
-def viewChain():
+def saveChain():
     c = requests.get(chainURL)
     print(c.text)
     with open('chain.txt', 'w') as outfile:
         outfile.write(c.text)
     #webbrowser.open(chainURL)
+
 
 while True:
     event, values = window.read()
@@ -42,6 +43,6 @@ while True:
     elif event == 'Mine a block':
         mineBlock()
     elif event == 'Download Current Chain':
-        viewChain()
+        saveChain()
 
 window.close()
