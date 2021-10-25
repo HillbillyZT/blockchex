@@ -169,6 +169,7 @@ def load_local_copy() -> Blockchain:
             load_chain.append(json.loads(b.toJSON))
     return load_chain
 
+
 def get_cumulative_difficulty(chain: Blockchain) -> int:
     sum = 0
     for b in chain:
