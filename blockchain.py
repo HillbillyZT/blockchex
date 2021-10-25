@@ -112,7 +112,8 @@ def does_local_copy_exist():
     return exists('chain.txt')
 
 
-def load_local_copy():
+# TODO finish this
+def load_local_copy() -> Blockchain:
     load_chain = []
     with open('chain.txt') as outfile:
         for b in outfile:
