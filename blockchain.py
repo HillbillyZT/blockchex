@@ -145,6 +145,8 @@ def is_block_structure_valid(block: Block):
 
 
 def is_blockchain_valid(b):
+    if len(b) == 0:
+        return False
     if (str(b[0]) != str(genesis_block)):
         return False
 
