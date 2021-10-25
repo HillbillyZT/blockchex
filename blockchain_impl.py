@@ -3,8 +3,8 @@ import logging
 import time
 import json
 from flask import Flask, jsonify, request
-from os.path import exists
 
+global blockchain
 
 class Block:
     def __init__(self, index, hash, previous_hash, timestamp, data, difficulty, nonce=0):
@@ -62,31 +62,17 @@ def solve_block(block: Block) -> None:
         block.nonce = block.nonce + 1
         block.hash = calculate_hash_block(block)
 
-
 def get_latest_block():
     return blockchain[-1]
 
-
-def convert_chain_to_json(chain: Blockchain) -> str:
-    return json.dumps(chain, default=lambda o: o.__dict__, sort_keys=False, indent=4)
-
-
 def get_chain_as_json():
-    return convert_chain_to_json(blockchain)
+    response = []
+    for b in blockchain:
+        response.append(json.loads(b.toJSON()))
+    #return str(jsonify(response).data.decode("utf-8"))
+    return json.dumps(blockchain, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
-
-def deserialize_block(d: dict) -> Block:
-    b = Block(d['index'], d['hash'], d['previous_hash'], d['timestamp'], d['data'])
-    return b
-
-
-def deserialize_blockchain(bclist: list) -> Blockchain:
-    bc_ds: Blockchain = []
-    for block_dict in bclist:
-        bc_ds.append(deserialize_block(block_dict))
-    return bc_ds
-
-
+#Confirms block is valid before appending it
 def add_block(block):
     if is_valid_block(block, get_latest_block()):
         blockchain.append(block)
@@ -99,7 +85,7 @@ def generate_next_block(data: str):
     solve_block(block)
 
     #Print the block to the console and add it to the chain
-    print(block)
+    # print(block)
     add_block(block)
     return block
 
@@ -118,7 +104,6 @@ def is_valid_block(block, previous):
         return False
     else:
         return True
-
 
 
 def is_block_structure_valid(block):
@@ -140,28 +125,19 @@ def is_blockchain_valid(b):
 
     return True
 
-
-def does_local_copy_exist():
-    return exists('chain.txt')
-
-
-# TODO finish this
-def load_local_copy() -> Blockchain:
-    load_chain = []
-    with open('chain.txt') as outfile:
-        for b in outfile:
-            load_chain.append(json.loads(b.toJSON))
-    return load_chain
-
+# On average, how many attempts does it take to get 3 leading 0s?
+def calculate_difficulty_attempts(runc: int) -> float: 
+    avg = 0
+    for i in range(0, runc):
+        generate_next_block(str(i))
+        avg += get_latest_block().nonce
+    return avg / runc
 
 # Consensus replacement
-def replace_chain(newchain: Blockchain) -> bool:
+def replace_chain(newchain: Blockchain) -> None:
     global blockchain
     if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
-
         blockchain = newchain
-        return True
     else:
         print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
-        return False
