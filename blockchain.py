@@ -3,6 +3,7 @@ import logging
 import time
 import json
 from flask import Flask, jsonify, request
+from os.path import exists
 
 
 class Block:
@@ -122,6 +123,9 @@ def is_blockchain_valid(b):
             return False
 
     return True
+
+def does_local_copy_exist():
+    return exists('chain.txt')
 
 # On average, how many attempts does it take to get 3 leading 0s?
 def calculate_difficulty_attempts(runc: int) -> float: 
