@@ -58,6 +58,10 @@ def receive_query_all():
 def receive_broadcast_block():
     return "", 200
 
+@app.route('/queryHeight', methods=['GET'])
+def receive_block_height():
+    return str(blockchain.get_latest_block().index), 200
+
 def start_flask():
     app.run(host='0.0.0.0', port=5000)
 

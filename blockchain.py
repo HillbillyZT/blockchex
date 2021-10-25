@@ -86,7 +86,7 @@ def is_block_structure_valid(block):
 
 def is_blockchain_valid(b):
     if(str(b[0]) != str(genesis_block)):
-        return False;
+        return False
     
     for i in range(1,len(b)):
         if not is_valid_block(b[i], b[i-1]):
