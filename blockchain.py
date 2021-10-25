@@ -29,11 +29,15 @@ def calculate_hash_block(block: Block) -> str:
 
 Blockchain = list[Block]
 
-timestamp = time.time()
-new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
-new_genesis.hash = calculate_hash_block(new_genesis)
+# timestamp = time.time()
+# new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
+# new_genesis.hash = calculate_hash_block(new_genesis)
 
-genesis_block = new_genesis
+# genesis_block = new_genesis
+
+# Added 0,0 for diff,nonce
+genesis_block = Block(0, "3ea9cb91d5ac70f93f00370ddb01661e2a3a16bcbac6a5412b0d5b66ee4ffa00", "", 1631511032.099209,
+                      "Genesis", 0, 0)
 
 #Global difficulty controls how hard it is to find a correct nonce to solve the hash
 #TODO make the difficulty scale based on how fast the previous block was solved
@@ -76,7 +80,7 @@ def get_chain_as_json():
 
 
 def deserialize_block(d: dict) -> Block:
-    b = Block(d['index'], d['hash'], d['previous_hash'], d['timestamp'], d['data'])
+    b = Block(d['index'], d['hash'], d['previous_hash'], d['timestamp'], d['data'], d['difficulty'], d['nonce'])
     return b
 
 
@@ -103,30 +107,40 @@ def generate_next_block(data: str):
     add_block(block)
     return block
 
+# New block is <60s behind the previous block
+#TODO handle future block ?
+def is_valid_timestamp(block: Block, new_block: Block) -> bool:
+    return (block.timestamp - 60 < new_block.timestamp)
 
 def is_valid_block(block, previous):
     if (block.index != previous.index + 1):
-        logging.Logger.critical("The index of block {block.index} is not one greater than block {previous.index}")
+        logging.info("The index of block {block.index} is not one greater than block {previous.index}")
         return False
     elif (previous.hash != block.previous_hash):
-        logging.Logger.critical("previous_hash field does not match previous hash")
+        logging.info("previous_hash field does not match previous hash")
         return False
     elif (calculate_hash_block(block) != block.hash):
-        logging.Logger.critical("Hash field is invalid")
+        logging.info("Hash field is invalid")
         return False
     elif (not confirm_difficulty(block)):
+        logging.info("The block is of insufficient difficulty.")
+        return False
+    elif (not is_valid_timestamp(previous, block)):
+        logging.info("The block is too far behind the previous block.")
         return False
     else:
         return True
 
 
 
-def is_block_structure_valid(block):
+def is_block_structure_valid(block: Block):
     return type(block.index) is int \
            and type(block.hash) is str \
            and type(block.previous_hash) is str \
            and type(block.timestamp) is float \
            and type(block.data) is str \
+           and type(block.difficulty) is int \
+           and type(block.nonce) is int \
            and type(block) is Block
 
 
@@ -153,11 +167,17 @@ def load_local_copy() -> Blockchain:
             load_chain.append(json.loads(b.toJSON))
     return load_chain
 
+def get_cumulative_difficulty(chain: Blockchain) -> int:
+    sum = 0
+    for b in chain:
+        sum += 2**b.difficulty
+    return sum
+        
 
 # Consensus replacement
 def replace_chain(newchain: Blockchain) -> bool:
     global blockchain
-    if is_blockchain_valid(newchain) and len(newchain) > len(blockchain):
+    if is_blockchain_valid(newchain) and get_cumulative_difficulty(newchain) > get_cumulative_difficulty(blockchain):
         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
 
         blockchain = newchain

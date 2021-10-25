@@ -21,7 +21,7 @@ def query_latest(target: str) -> bc.Block:
     # implement request for latest, handle data
     r = requests.get(f"{target}/queryLatest")
     j = r.json()
-    b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'])
+    b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'], j['difficulty'], j['nonce'])
     return b
 
 
@@ -91,7 +91,7 @@ def init_target(target: str) -> None:
 
 def init_P2P():
     print("got here!")
-    for target in targets:
+    for target in targets.copy():
         # Run Connection Startup Tasks
         try:
             init_target(target)

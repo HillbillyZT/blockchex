@@ -22,7 +22,6 @@ def mine():
         'message': "New Block Created",
         'block': json.loads(b.toJSON())
     }
-    response = {**response, **json.loads(b.toJSON())}
 
     return jsonify(response), 200
 
@@ -70,23 +69,24 @@ def start_flask():
     app.run(host='0.0.0.0', port=5000)
 
 
+# TODO Query functions are handled in init, just attempt load chain
 if __name__ == '__main__':
     Thread(target=start_flask).start()
     # Check if we have a local copy stored
-    if does_local_copy_exist():
-        blockchain.replace_chain(load_local_copy())
-        print("local copy loaded")
-        # Query peers for their block height and compare to ours
-        if int(receive_block_height()) != query_latest().index:
-            # Request their chain if block height isn't equal
-            blockchain = query_all()
-    # If we don't have a local copy, create one and load chain from peers into it
-    else:
-        peer_chain = []
-        peer_chain = query_all()
-        with open('chain.txt', 'w') as outfile:
-            for b in peer_chain:
-                outfile.write(b)
+    # if blockchain.does_local_copy_exist():
+    #     blockchain.replace_chain(blockchain.load_local_copy())
+    #     print("local copy loaded")
+    #     # Query peers for their block height and compare to ours
+    #     # if int(receive_block_height()) != query_latest().index:
+    #     #     # Request their chain if block height isn't equal
+    #     #     blockchain = query_all()
+    # # If we don't have a local copy, create one and load chain from peers into it
+    # else:
+    #     peer_chain = []
+    #     # peer_chain = query_all()
+    #     with open('chain.txt', 'w') as outfile:
+    #         for b in peer_chain:
+    #             outfile.write(b)
 
 
     while True:
