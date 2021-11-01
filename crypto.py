@@ -3,12 +3,14 @@ from hashlib import sha256
 from functools import reduce
 
 
+# Transaction outputs
 class TxOut:
     def __init__(self, address: str, amount: float) -> None:
         self.address = address
         self.amount = amount
 
 
+# Transaction inputs
 class TxIn:
     def __init__(self, outId: str, outIndex: int, signature: str) -> None:
         self.outId = outId
@@ -16,6 +18,7 @@ class TxIn:
         self.signature = signature
 
 
+# Transaction class containing lists of all txs in and out
 class Transaction:
     def __init__(self, id: str = "", txIns: list[TxIn] = [], txOuts: list[TxOut] = []) -> None:
         self.id = id
@@ -32,6 +35,8 @@ class UnspentTxOut:
         self._amount = amount
 
 
+# Lambdas for days
+# TODO Chris pls explain this
 def getTransactionId(tx: Transaction) -> str:
     txInsStr: str = reduce(lambda x, y: x + y, map(lambda a: str(a.outId) + str(a.outIndex), tx.txIns))
     txOutStr: str = reduce(lambda x, y: x + y, map(lambda a: str(a.address) + str(a.amount), tx.txOuts))
@@ -40,25 +45,29 @@ def getTransactionId(tx: Transaction) -> str:
     return hash
 
 
+# TODO Find our unspent outputs; tokens we currently have to spend ?
 def findUnspentTxOut(txId: str, index: int, unspentTxOuts: list[UnspentTxOut]) -> TxOut:
     return filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts)[0]
 
 
+# Generate a signing key and return it
 def makePrivateKey() -> SigningKey:
     return SigningKey.generate()
 
 
+# Use our private key to view our public key
 def getPublicKey(privateKey: str) -> str:
     return SigningKey.from_string(privateKey).verifying_key
 
 
-# TODO method to allow users to input private key for access
+# TODO method to allow users to input private key for access/verification
 def checkPrivateKey(privateKey: str) -> str:
     # If valid input return true
     return True
     # Else return false
 
 
+# TODO Chris explain pls
 def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: list[UnspentTxOut]) -> str:
     txIn = tx.txIns[txInIndex]
     payload = tx.id
@@ -81,7 +90,7 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
     return signature.hex()
 
 
-# Testing
+# ----- Testing ----- #
 
 # private_key = SigningKey.generate()
 # public_key = private_key.verifying_key

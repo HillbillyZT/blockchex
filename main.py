@@ -15,6 +15,8 @@ app.config['JSON_SORT_KEYS'] = False
 #TODO scaling block difficulty
 #TODO start PoS implementation
 
+
+# Calling /mine with a post method generates a new block
 @app.route('/mine', methods=['POST'])
 def mine():
     b = blockchain.generate_next_block(str(request.get_data().decode("utf-8")))
@@ -27,38 +29,45 @@ def mine():
     return jsonify(response), 200
 
 
+# Calling /chain with GET returns the current blockchain as json
 @app.route('/chain', methods=['GET'])
 def full_chain():
     return blockchain.get_chain_as_json(), 200
 
 
+# Calling /newPeer with POST initiates a new p2p connection
 @app.route('/newPeer', methods=['POST'])
 def add_new_peer():
     p2p_http.init_target(request.data.decode("utf-8"))
     return "", 200
 
 
+# Calling /getPeers with GET returns all currently connected peers
 @app.route('/getPeers', methods=['GET'])
 def get_peers():
     return p2p_http.targets, 200
 
 
-# End-points for P2P communications    
+# Calling /queryLatest with GET returns the latest block on our blockchain as json
 @app.route('/queryLatest', methods=['GET'])
 def receive_query_latest():
     return blockchain.get_latest_block().toJSON(), 200
 
 
+# Calling /queryAll with GET returns an updated blockchain after checking with our peers
 @app.route('/queryAll', methods=['GET'])
 def receive_query_all():
+    # Check if the address is not in our targets and add if necessary
+    # init_target does all the heavy lifting here
     if request.remote_addr not in p2p_http.targets:
         p2p_http.init_target(request.remote_addr)
     return blockchain.get_chain_as_json(), 200
 
 
-# TODO do something with block when we receive it
+# TODO test this function
+# Handle blocks as we receive them from peers
 @app.route('/receiveBlock', methods=['POST'])
-def receive_broadcast_block(block):
+def receive_broadcast_block():
     if request.remote_addr not in p2p_http.targets:
         p2p_http.targets.add(request.remote_addr)
     
@@ -70,11 +79,15 @@ def receive_broadcast_block(block):
     return "", 200
 
 
+# Calling /queryHeight with GET returns our latest block index as a string
 @app.route('/queryHeight', methods=['GET'])
 def receive_block_height():
     return str(blockchain.get_latest_block().index), 200
 
 
+# This function starts our flask server
+# and lets our local host determine the address to run it on
+# Necessary to be a separate function so we can run it on a thread in Main
 def start_flask():
     app.run(host='0.0.0.0', port=5000)
 

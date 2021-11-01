@@ -10,13 +10,14 @@ logging.basicConfig(level=logging.INFO)
 targets = set()
 
 
-# TODO(Chris)
+# Send the block to every open connection
 def broadcast_block(b: bc.Block) -> None:
     for target in targets:
         # we do some POST requests
         r = requests.post(f"{target}/receiveBlock", data=b.toJSON())
 
 
+# Calls /queryLatest from main.py to return the latest block on our local chain
 def query_latest(target: str) -> bc.Block:
     # implement request for latest, handle data
     r = requests.get(f"{target}/queryLatest")
@@ -25,7 +26,7 @@ def query_latest(target: str) -> bc.Block:
     return b
 
 
-# TODO(Chris)
+# Calls /queryAll from main.py to get an updated blockchain from our peers
 def query_all(target: str) -> bc.Blockchain:
     r = requests.get(f"{target}/queryAll")
     j = r.json()
@@ -33,6 +34,7 @@ def query_all(target: str) -> bc.Blockchain:
     return j_s
 
 
+# Adds block to chain if it is valid and returns a Boolean based on the result
 def add_block_to_chain(b: bc.Block) -> bool:
     if bc.is_valid_block(b, bc.get_latest_block()):
         bc.add_block(b)
@@ -41,7 +43,7 @@ def add_block_to_chain(b: bc.Block) -> bool:
         return False
 
 
-# When we request just the top block
+# When we request just the top block and compare it
 def handle_query_latest(target):
     peer_latest = query_latest(target)
     compare_heights(peer_latest, target)
@@ -53,16 +55,20 @@ def handle_query_all(target):
     bc.replace_chain(chain)
 
 
+# Compare height of peer vs our chain
 def compare_heights(peer_latest: bc.Block, target: str) -> None:
     self_latest = bc.get_latest_block()
 
+    # Verify the block structure
     if not bc.is_block_structure_valid(peer_latest):
         logging.info("Block structure not valid.")
         return
 
+    # Fetch heights for comparison
     peer_height = peer_latest.index
     self_height = bc.get_latest_block().index
 
+    # Compare heights and react accordingly
     if peer_height > self_height:
         if peer_latest.previous_hash == self_latest.hash:
             logging.info("Peer ahead one block, attempting to validate and add...")
@@ -80,6 +86,7 @@ def compare_heights(peer_latest: bc.Block, target: str) -> None:
         logging.info("The peer's blockchain is not longer than ours: ignore.")
 
 
+# Add new target and then try to query their latest block
 def init_target(target: str) -> None:
     targets.add(target)
     try:
@@ -89,6 +96,7 @@ def init_target(target: str) -> None:
         targets.remove(target)
 
 
+# This function does most of the heavy lifting for our p2p functionality
 def init_P2P():
     print("got here!")
     for target in targets.copy():
