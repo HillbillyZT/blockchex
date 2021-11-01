@@ -56,6 +56,7 @@ def receive_query_all():
     return blockchain.get_chain_as_json(), 200
 
 
+# TODO do something with block when we receive it
 @app.route('/receiveBlock', methods=['POST'])
 def receive_broadcast_block():
     return "", 200

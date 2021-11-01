@@ -1,8 +1,5 @@
-import tkinter as tk
-from tkinter.ttk import *
 import PySimpleGUI as sg
 import requests
-# import webbrowser
 import json
 from flask import jsonify, Flask
 from crypto import makePrivateKey
@@ -38,7 +35,6 @@ def saveChain():
     print(c.text)
     with open('chain.txt', 'w') as outfile:
         outfile.write(c.text)
-    # webbrowser.open(chainURL)
 
 
 def makeKey():
