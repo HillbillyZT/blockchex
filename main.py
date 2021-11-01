@@ -58,8 +58,8 @@ def receive_query_all():
 
 # TODO do something with block when we receive it
 @app.route('/receiveBlock', methods=['POST'])
-def receive_broadcast_block():
-    return "", 200
+def receive_broadcast_block(block):
+    return blockchain.add_block(block), 200
 
 
 @app.route('/queryHeight', methods=['GET'])

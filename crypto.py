@@ -52,6 +52,13 @@ def getPublicKey(privateKey: str) -> str:
     return SigningKey.from_string(privateKey).verifying_key
 
 
+# TODO method to allow users to input private key for access
+def checkPrivateKey(privateKey: str) -> str:
+    # If valid input return true
+    return True
+    # Else return false
+
+
 def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: list[UnspentTxOut]) -> str:
     txIn = tx.txIns[txInIndex]
     payload = tx.id
