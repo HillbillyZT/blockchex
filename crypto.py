@@ -76,18 +76,21 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
 
 # Testing
 
-private_key = SigningKey.generate()
-public_key = private_key.verifying_key
-data = "temst"
+# private_key = SigningKey.generate()
+# public_key = private_key.verifying_key
+# data = "temst"
 
-signature: bytes = private_key.sign(data.encode())
-print(signature.hex())
+# signature: bytes = private_key.sign(data.encode())
+# print("Signature: " + str(signature.hex()))
 
-assert public_key.verify(signature, data.encode())
-print(public_key.verify(signature, data.encode()))
-print(private_key.to_string().hex())
-print(private_key.to_pem().decode())
-print(private_key.to_der().hex())
+# print("Signature verifies: " + str(public_key.verify(signature, data.encode())))
+
+# print("A few different ways to output keys: ")
+# print(private_key.to_string().hex())
+# print()
+# print(private_key.to_pem().decode())
+# print()
+# print(private_key.to_der().hex())
 
 # t_txin1 = TxIn("outID1", "outIndex1", "signature1")
 # t_txin2 = TxIn("outID2", "outIndex2", "signature2")
