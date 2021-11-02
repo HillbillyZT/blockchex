@@ -59,7 +59,15 @@ def receive_query_all():
 # TODO do something with block when we receive it
 @app.route('/receiveBlock', methods=['POST'])
 def receive_broadcast_block(block):
-    return blockchain.add_block(block), 200
+    if request.remote_addr not in p2p_http.targets:
+        p2p_http.targets.add(request.remote_addr)
+    
+    # Check if received block is just +1, or on different chain
+    print(request.data.decode())
+    block: dict = json.loads(request.data.decode())
+    block_obj: blockchain.Block = blockchain.deserialize_block(block)
+    p2p_http.compare_heights(block_obj, request.remote_addr)
+    return "", 200
 
 
 @app.route('/queryHeight', methods=['GET'])
