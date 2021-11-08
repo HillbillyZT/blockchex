@@ -2,6 +2,8 @@ from ecdsa import SigningKey
 from hashlib import sha256
 from functools import reduce
 
+from ecdsa.keys import VerifyingKey
+
 
 # Transaction outputs
 class TxOut:
@@ -47,7 +49,7 @@ def getTransactionId(tx: Transaction) -> str:
 
 # TODO Find our unspent outputs; tokens we currently have to spend ?
 def findUnspentTxOut(txId: str, index: int, unspentTxOuts: list[UnspentTxOut]) -> TxOut:
-    return filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts)[0]
+    return next(filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts))
 
 
 # Generate a signing key and return it
@@ -88,6 +90,84 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
 
     signature: bytes = truePrivateKey.sign(payload.encode())
     return signature.hex()
+
+
+# This function is nasty as hell
+def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[UnspentTxOut]) -> list[UnspentTxOut]:
+    # Get all of the txOuts of new transactions, merge into one list
+    unspentTxOuts_additional: list[UnspentTxOut]
+    # This may need to be reduced
+    unspentTxOuts_additional = map(lambda tx: map(lambda txout, idx: UnspentTxOut(tx.id, idx, txout.address, txout.amount), tx.txOuts), enumerate(newTransactions))
+    # Reduced:
+    unspentTxOuts_additional = sum(unspentTxOuts_additional, [])
+    
+    # Get all of the txIns of new transactions, merge into one list
+    spentTxOuts: list[UnspentTxOut] = map(lambda x: x.txIns, newTransactions)
+    spentTxOuts = sum(spentTxOuts, [])
+    spentTxOuts = map(lambda txin: UnspentTxOut(txin._txOutId, txin._txOutIndex, '', 0), spentTxOuts)
+    
+    # Determine full set of unspent txouts by adding new txouts and removing spent ones
+    newUnspentTxOuts: list[UnspentTxOut] = filter(lambda utxo: \
+        not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts),unspentTxOuts)
+    newUnspentTxOuts = newUnspentTxOuts.extend(unspentTxOuts_additional)
+    
+    return newUnspentTxOuts
+    
+
+# Yeah this can be done later its boring
+# TODO(Chris) this shit
+def isValidTransactionStructure(tx: Transaction) -> bool:
+    pass
+
+
+# Validate a TxIn
+def validateTxIn(txin: TxIn, tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> bool:
+    referencedUTxO: UnspentTxOut
+    referencedUTxO = next(filter(lambda utxo: \
+        utxo._txOutId == txin.outId, unspentTxOuts))
+    
+    if not referencedUTxO:
+        print("Referenced TxOut not found among specified UnspentTxOuts.")
+        return False
+    
+    address = referencedUTxO._address
+    
+    verifying_key = VerifyingKey.from_string(address)
+    return verifying_key.verify(txin.signature, tx.id)
+
+
+def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
+    return findUnspentTxOut(txIn.outId, txIn.outIndex, unspentTxOuts)
+
+
+# Validate a full Transaction
+def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> bool:
+    if(getTransactionId(tx) != tx.id):
+        print('Invalid transaction ID: ' + str(tx.id))
+        return False
+    
+    # Validate all Transaction's TxIns
+    hasAllValidTxIns: bool = reduce(lambda x, y: x and y, \
+        map(lambda txin: validateTxIn(txin, tx, unspentTxOuts), tx.txIns))
+    
+    if not hasAllValidTxIns:
+        print("One or more of the Transaction's TxIns are invalid.")
+        return False
+    
+    # Sum input and output amounts; can't send more than we spend
+    sumTxInValues: float = reduce(lambda x,y: x + y,  \
+        map(lambda txin: getTxInAmount(txin, unspentTxOuts),tx.txIns))
+    
+    sumTxOutValues: float = reduce(lambda x,y: x + y, \
+        map(lambda txout: txout.amount, tx.txOuts))
+    
+    if sumTxInValues != sumTxOutValues:
+        print("Transaction input amounts do not match transaction output amounts.")
+        return False
+    
+    # Done :D
+    return True
+
 
 
 # ----- Testing ----- #
