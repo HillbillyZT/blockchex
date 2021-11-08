@@ -2,10 +2,10 @@ from werkzeug.wrappers import request
 import blockchain as blockchain
 import json
 from flask import Flask, request, jsonify
+import client
 import p2p_http
 from threading import Thread
 import time
-import client
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -85,6 +85,20 @@ def receive_block_height():
     return str(blockchain.get_latest_block().index), 200
 
 
+# Calling /block with a hash returns the block with the hash value input
+@app.route('/blockHash/<findHash>', methods=['GET'])
+def get_block_by_hash(findHash: str):
+    b = blockchain.lookup_block_by_hash(findHash)
+    return blockchain.convert_block_to_json(b), 200
+
+
+# Calling /block with a height returns the block with the height value input
+@app.route('/blockHeight/<findHeight>', methods=['GET'])
+def get_block_by_height(findHeight: int):
+    b = blockchain.lookup_block_by_height(findHeight)
+    return blockchain.convert_block_to_json(b), 200
+
+
 # This function starts our flask server
 # and lets our local host determine the address to run it on
 # Necessary to be a separate function so we can run it on a thread in Main
@@ -92,9 +106,20 @@ def start_flask():
     app.run(host='0.0.0.0', port=5000)
 
 
+# with app.app_context():
+#     serverURL = request.root_url
+
+
+# @app.route('/')
+# def flask_url():
+#     return str(request.root_url)
+
+
 # TODO Query functions are handled in init, just attempt load chain
 if __name__ == '__main__':
+    serverURL = 'http://192.168.0.4:5000'
     Thread(target=start_flask).start()
+    Thread(target=client.runClient(serverURL)).start()
     # Check if we have a local copy stored
     # if blockchain.does_local_copy_exist():
     #     blockchain.replace_chain(blockchain.load_local_copy())

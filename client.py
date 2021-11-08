@@ -3,56 +3,33 @@ import requests
 import json
 from flask import jsonify, Flask
 from crypto import makePrivateKey
+import keyring
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
 
 # ------ Menu Definition ------ #
-menu_def = [['&File', ['&Open', '&Save', '&Exit', 'Properties']],
-            ['&Edit', ['Paste', ['Special', 'Normal', ], 'Undo'], ],
+menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
+            ['&View', ['Block', ['By Height', 'By Hash', ], 'Chain'], ],
             ['&Help', '&About...']]
 
 # Layout for the objects inside the window
 layout = [[sg.Menu(menu_def, tearoff=True)],
           [sg.Button('Mine a block')],
           [sg.Button('Download Current Chain')],
+          [sg.Button('Lookup block by height')],
           [sg.Button('Generate a new key')],
           [sg.Text('No current key', key='walletText')],
           [sg.Button('Close')]
           ]
 
 # Initialize window with title, our layout defined above, and a size
-window = sg.Window('Mining Client', layout, size=(600, 400))
+#window = sg.Window('Mining Client', layout, size=(600, 400))
 
 # Hard coded URLs til the client launches the Daemon
 # Eventually these will be automatically set
-miningURL = 'http://192.168.0.9:5000/mine'
-chainURL = 'http://192.168.0.9:5000/chain'
-
-
-# ----- Function Definitions ----- #
-# Mine a new block via the mining url
-def mineBlock():
-    r = requests.post(miningURL)
-    print("Mining successful")
-
-
-# Save our current chain to a local text file
-def saveChain():
-    c = requests.get(chainURL)
-    print(c.text)
-    with open('chain.txt', 'w') as outfile:
-        outfile.write(c.text)
-
-
-# Basic functionality for generating a new private key
-def makeKey():
-    newKey = makePrivateKey()
-    newKey = newKey.to_string().hex()
-    window['walletText'].update(newKey)
-    with open('keys.txt', 'a') as outfile:
-        outfile.write(newKey)
-        outfile.write('\n')
+#miningURL = 'http://192.168.0.9:5000/mine'
+#chainURL = 'http://192.168.0.9:5000/chain'
 
 
 # TODO Start/stop daemon with client
@@ -68,15 +45,55 @@ def makeKey():
 # While loop to continually check for events within the window
 # Perform relevant actions when necessary
 # Might have to thread things eventually so client doesn't lock up when performing a long task
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED or event == 'Close':
-        break
-    elif event == 'Mine a block':
-        mineBlock()
-    elif event == 'Download Current Chain':
-        saveChain()
-    elif event == 'Generate a new key':
-        makeKey()
+def runClient(serverURL: str):
+    # Initialize window with title, our layout defined above, and a size
+    window = sg.Window('Mining Client', layout, size=(600, 400))
 
-window.close()
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Close':
+            break
+        elif event == 'Mine a block':
+            mineBlock(serverURL)
+        elif event == 'Download Current Chain':
+            saveChain(serverURL)
+        elif event == 'Generate a new key':
+            makeKey(window)
+        elif event == "Lookup block by height":
+            lookupBlockHeight(serverURL, 2)
+
+    window.close()
+
+
+# ----- Function Definitions ----- #
+# Mine a new block via the mining url
+def mineBlock(serverURL):
+    miningURL = serverURL + '/mine'
+    r = requests.post(miningURL)
+    print("Mining successful")
+
+
+# Save our current chain to a local text file
+def saveChain(serverURL):
+    chainURL = serverURL + '/chain'
+    c = requests.get(chainURL)
+    print(c.text)
+    with open('chain.txt', 'w') as outfile:
+        outfile.write(c.text)
+
+
+# Basic functionality for generating a new private key
+def makeKey(window):
+    newKey = makePrivateKey()
+    newKey = newKey.to_string().hex()
+    window['walletText'].update(newKey)
+    with open('keys.txt', 'a') as outfile:
+        outfile.write(newKey)
+        outfile.write('\n')
+
+
+def lookupBlockHeight(serverURL, height: int):
+    heightURL = serverURL + '/blockHeight/' + str(height)
+    b = requests.get(heightURL)
+    with open('block.txt', 'w') as outfile:
+        outfile.write(b)

@@ -49,6 +49,7 @@ def calculate_hash(index, previous_hash, timestamp, data, difficulty, nonce):
     block_string = str(index)+str(previous_hash)+str(timestamp)+str(data) + str(difficulty) + str(nonce)
     return sha256(block_string.encode()).hexdigest()
 
+
 def calculate_hash_block(block: Block) -> str:
     return calculate_hash(
         block.index, block.previous_hash, block.timestamp, block.data, block.difficulty, block.nonce
@@ -70,6 +71,10 @@ def solve_block(block: Block) -> None:
 
 def get_latest_block():
     return blockchain[-1]
+
+
+def convert_block_to_json(block: Block) -> str:
+    return json.dumps(block, default=lambda o: o.__dict__, sort_keys=False, indent=4)
 
 
 def convert_chain_to_json(chain: Blockchain) -> str:
@@ -191,3 +196,16 @@ def replace_chain(newchain: Blockchain) -> bool:
     else:
         print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
         return False
+
+
+def lookup_block_by_hash(findHash: str) -> Block:
+    for b in blockchain:
+        if b.hash == findHash:
+            return b
+    return None
+
+
+def lookup_block_by_height(findBlockHeight: int) -> Block:
+    if 0 <= int(findBlockHeight) <= len(blockchain):
+        return blockchain[int(findBlockHeight)]
+    return None
