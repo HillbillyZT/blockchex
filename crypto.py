@@ -48,7 +48,7 @@ def getTransactionId(tx: Transaction) -> str:
 
 
 # TODO Find our unspent outputs; tokens we currently have to spend ?
-def findUnspentTxOut(txId: str, index: int, unspentTxOuts: list[UnspentTxOut]) -> TxOut:
+def findUnspentTxOut(txId: str, index: int, unspentTxOuts: list[UnspentTxOut]) -> UnspentTxOut:
     return next(filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts))
 
 
@@ -63,7 +63,7 @@ def getPublicKey(privateKey: str) -> str:
 
 
 # TODO method to allow users to input private key for access/verification
-def checkPrivateKey(privateKey: str) -> str:
+def checkPrivateKey(privateKey: str) -> bool:
     # If valid input return true
     return True
     # Else return false
@@ -97,9 +97,9 @@ def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[Unspen
     # Get all of the txOuts of new transactions, merge into one list
     unspentTxOuts_additional: list[UnspentTxOut]
     # This may need to be reduced
-    unspentTxOuts_additional = list(map(lambda tx: \
+    unspentTxOuts_additional = [*map(lambda tx: \
         map(lambda txout, idx: UnspentTxOut(tx.id, idx, txout.address, txout.amount), tx.txOuts), \
-        enumerate(newTransactions)))
+        enumerate(newTransactions))]
     
     # Reduced:
     unspentTxOuts_additional = sum(unspentTxOuts_additional, [])
