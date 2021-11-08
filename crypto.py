@@ -80,7 +80,7 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
         print("This shouldn't happen...")
         raise Exception('could not find referenced output')
 
-    address = unspentTxOut.address
+    address = unspentTxOut._address
 
     if (getPublicKey(privateKey) != address):
         print("Signing key does not match Verifying key.")
@@ -141,7 +141,7 @@ def validateTxIn(txin: TxIn, tx: Transaction, unspentTxOuts: list[UnspentTxOut])
 
 
 def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
-    return findUnspentTxOut(txIn.outId, txIn.outIndex, unspentTxOuts).amount
+    return findUnspentTxOut(txIn.outId, txIn.outIndex, unspentTxOuts)._amount
 
 
 # Validate a full Transaction
