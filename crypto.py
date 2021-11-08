@@ -97,19 +97,23 @@ def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[Unspen
     # Get all of the txOuts of new transactions, merge into one list
     unspentTxOuts_additional: list[UnspentTxOut]
     # This may need to be reduced
-    unspentTxOuts_additional = map(lambda tx: map(lambda txout, idx: UnspentTxOut(tx.id, idx, txout.address, txout.amount), tx.txOuts), enumerate(newTransactions))
+    unspentTxOuts_additional = list(map(lambda tx: \
+        map(lambda txout, idx: UnspentTxOut(tx.id, idx, txout.address, txout.amount), tx.txOuts), \
+        enumerate(newTransactions)))
+    
     # Reduced:
     unspentTxOuts_additional = sum(unspentTxOuts_additional, [])
     
     # Get all of the txIns of new transactions, merge into one list
-    spentTxOuts: list[UnspentTxOut] = map(lambda x: x.txIns, newTransactions)
+    spentTxOuts: list[UnspentTxOut] = list(map(lambda x: x.txIns, newTransactions))
     spentTxOuts = sum(spentTxOuts, [])
-    spentTxOuts = map(lambda txin: UnspentTxOut(txin._txOutId, txin._txOutIndex, '', 0), spentTxOuts)
+    spentTxOuts = list(map(lambda txin: UnspentTxOut(txin._txOutId, txin._txOutIndex, '', 0), spentTxOuts))
     
     # Determine full set of unspent txouts by adding new txouts and removing spent ones
-    newUnspentTxOuts: list[UnspentTxOut] = filter(lambda utxo: \
-        not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts),unspentTxOuts)
-    newUnspentTxOuts = newUnspentTxOuts.extend(unspentTxOuts_additional)
+    newUnspentTxOuts: list[UnspentTxOut] = list(filter(lambda utxo: \
+        not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts),unspentTxOuts))
+        
+    newUnspentTxOuts.extend(unspentTxOuts_additional)
     
     return newUnspentTxOuts
     
@@ -137,7 +141,7 @@ def validateTxIn(txin: TxIn, tx: Transaction, unspentTxOuts: list[UnspentTxOut])
 
 
 def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
-    return findUnspentTxOut(txIn.outId, txIn.outIndex, unspentTxOuts)
+    return findUnspentTxOut(txIn.outId, txIn.outIndex, unspentTxOuts).amount
 
 
 # Validate a full Transaction
