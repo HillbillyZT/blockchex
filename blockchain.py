@@ -2,6 +2,8 @@ from hashlib import sha256
 import logging
 import time
 import json
+from typing import Union
+
 from flask import Flask, jsonify, request
 from os.path import exists
 
@@ -201,14 +203,18 @@ def replace_chain(newchain: Blockchain) -> bool:
         return False
 
 
-def lookup_block_by_hash(findHash: str) -> Block:
+# Input hash value, return either a block or string
+def lookup_block_by_hash(findHash: str) -> Union[Block, str]:
     for b in blockchain:
         if b.hash == findHash:
             return b
-    return None
+    not_found = "No block found with that hash"
+    return not_found
 
 
-def lookup_block_by_height(findBlockHeight: int) -> Block:
+# Input a height value, return either a block or a string
+def lookup_block_by_height(findBlockHeight: int) -> Union[Block, str]:
     if 0 <= int(findBlockHeight) <= len(blockchain):
         return blockchain[int(findBlockHeight)]
-    return None
+    invalid_input = "Please input a valid block height between 0 and " + str(len(blockchain))
+    return invalid_input

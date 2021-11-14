@@ -1,9 +1,1 @@
-{
-    "index": 8,
-    "hash": "0007fda96d4675de2b03096debfe0c2eb14e877c641ef5768ebe6102ac5a272c",
-    "previous_hash": "00065a83a482af75f311308a3b768ee30c4af6085bc2027fb2c00646d3356d7a",
-    "timestamp": 1636857869.5634613,
-    "data": "",
-    "difficulty": 3,
-    "nonce": 5029
-}
+"No block found with that hash"

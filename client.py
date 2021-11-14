@@ -5,6 +5,9 @@ from crypto import makePrivateKey
 import keyring
 import webbrowser
 
+
+# Find first private key stored in keys.txt before defining our menu
+# This lets us populate the field on declaration
 with open('keys.txt', 'r') as outfile:
     currentWallet = outfile.readline()
 
@@ -16,7 +19,9 @@ menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
             ['&View', ['Block', ['By Height', 'By Hash', ], 'Chain'], ],
             ['&Help', '&About...']]
 
+# ----- Layout Definition ----- #
 # Layout for the objects inside the window
+# Key value allows us to update/use variable by reference
 layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Mine a block')],
           [sg.Button('Download Current Chain')],
@@ -27,7 +32,7 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Close')]
           ]
 
-
+# Most of these are goals that will not be addressed within the scope of this semester
 # TODO Start/stop daemon with client
 # TODO Start/stop continual mining
 # TODO Store IPs of current connections
@@ -44,7 +49,6 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
 def runClient(serverURL: str):
     # Initialize window with title, our layout defined above, and a size
     window = sg.Window('Mining Client', layout, size=(600, 400))
-
 
     while True:
         event, values = window.read()
@@ -69,6 +73,9 @@ def runClient(serverURL: str):
 
 
 # ----- Function Definitions ----- #
+# These functions get called within our window loop
+# Perform relevant actions based on function + variable input
+
 # Mine a new block via the mining url
 def mineBlock(serverURL):
     miningURL = serverURL + '/mine'
@@ -96,6 +103,7 @@ def makeKey(window):
         outfile.write('\n')
 
 
+# Take height from user and use a get request to return the info
 def lookupBlockHeight(serverURL, height: int):
     heightURL = serverURL + '/blockHeight/' + str(height)
     b = requests.get(heightURL)
@@ -104,6 +112,7 @@ def lookupBlockHeight(serverURL, height: int):
     return str(b.text)
 
 
+# Take hash from user and use a get request to return the info
 def lookupBlockHash(serverURL, hash: int):
     hashURL = serverURL + '/blockHash/' + str(hash)
     b = requests.get(hashURL)
