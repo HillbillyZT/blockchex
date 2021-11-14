@@ -142,7 +142,4 @@ cython_debug/
 
 # IDEA-extended files
 .idea/
-venv/!/keys.txt
-!/keys.txt
-!/chain.txt
-!/block.txt
+venv/
