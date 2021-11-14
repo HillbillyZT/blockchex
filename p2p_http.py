@@ -98,7 +98,7 @@ def init_target(target: str) -> None:
 
 # This function does most of the heavy lifting for our p2p functionality
 def init_P2P():
-    print("got here!")
+    #print("got here!")
     for target in targets.copy():
         # Run Connection Startup Tasks
         try:

@@ -4,6 +4,8 @@ import json
 from flask import jsonify, Flask
 from crypto import makePrivateKey
 import keyring
+from os.path import exists
+
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
@@ -23,14 +25,6 @@ layout = [[sg.Menu(menu_def, tearoff=True)],
           [sg.Button('Close')]
           ]
 
-# Initialize window with title, our layout defined above, and a size
-#window = sg.Window('Mining Client', layout, size=(600, 400))
-
-# Hard coded URLs til the client launches the Daemon
-# Eventually these will be automatically set
-#miningURL = 'http://192.168.0.9:5000/mine'
-#chainURL = 'http://192.168.0.9:5000/chain'
-
 
 # TODO Start/stop daemon with client
 # TODO Start/stop continual mining
@@ -48,6 +42,7 @@ layout = [[sg.Menu(menu_def, tearoff=True)],
 def runClient(serverURL: str):
     # Initialize window with title, our layout defined above, and a size
     window = sg.Window('Mining Client', layout, size=(600, 400))
+
 
     while True:
         event, values = window.read()
@@ -77,9 +72,10 @@ def mineBlock(serverURL):
 def saveChain(serverURL):
     chainURL = serverURL + '/chain'
     c = requests.get(chainURL)
+    data = c.json()
     print(c.text)
     with open('chain.txt', 'w') as outfile:
-        outfile.write(c.text)
+        outfile.write(json.dumps(data))
 
 
 # Basic functionality for generating a new private key
@@ -96,4 +92,11 @@ def lookupBlockHeight(serverURL, height: int):
     heightURL = serverURL + '/blockHeight/' + str(height)
     b = requests.get(heightURL)
     with open('block.txt', 'w') as outfile:
-        outfile.write(b)
+        outfile.write(str(b.text))
+
+
+def lookupBlockHash(serverURL, hash: int):
+    hashURL = serverURL + '/blockHeight/' + str(hash)
+    b = requests.get(hashURL)
+    with open('block.txt', 'w') as outfile:
+        outfile.write(str(b.text))

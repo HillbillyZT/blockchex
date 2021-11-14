@@ -10,10 +10,11 @@ import time
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
-#TODO ensure hashing consistency between pure dumps and JSON dumps
-#TODO p2p node conversations
-#TODO scaling block difficulty
-#TODO start PoS implementation
+
+# TODO ensure hashing consistency between pure dumps and JSON dumps
+# TODO p2p node conversations
+# TODO scaling block difficulty
+# TODO start PoS implementation
 
 
 # Calling /mine with a post method generates a new block
@@ -106,37 +107,21 @@ def start_flask():
     app.run(host='0.0.0.0', port=5000)
 
 
-# with app.app_context():
-#     serverURL = request.root_url
-
-
-# @app.route('/')
-# def flask_url():
-#     return str(request.root_url)
-
-
-# TODO Query functions are handled in init, just attempt load chain
+# Main
 if __name__ == '__main__':
+    # Check if we have a local copy stored
+    if blockchain.does_local_copy_exist():
+        blockchain.replace_chain(blockchain.load_local_copy())
+        print("local copy loaded")
+
+    # Flask server url is hardcoded until we can figure out how to automatically retrieve it
     serverURL = 'http://192.168.0.4:5000'
+
+    # Run server and client on separate threads
     Thread(target=start_flask).start()
     Thread(target=client.runClient(serverURL)).start()
-    # Check if we have a local copy stored
-    # if blockchain.does_local_copy_exist():
-    #     blockchain.replace_chain(blockchain.load_local_copy())
-    #     print("local copy loaded")
-    #     # Query peers for their block height and compare to ours
-    #     # if int(receive_block_height()) != query_latest().index:
-    #     #     # Request their chain if block height isn't equal
-    #     #     blockchain = query_all()
-    # # If we don't have a local copy, create one and load chain from peers into it
-    # else:
-    #     peer_chain = []
-    #     # peer_chain = query_all()
-    #     with open('chain.txt', 'w') as outfile:
-    #         for b in peer_chain:
-    #             outfile.write(b)
 
-
+    # Run an infinite loop of init_p2p
     while True:
         p2p_http.init_P2P()
         time.sleep(60)

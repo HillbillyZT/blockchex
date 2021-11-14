@@ -165,16 +165,19 @@ def is_blockchain_valid(b):
     return True
 
 
+# Return a boolean value based on whether or not the specified file exists
 def does_local_copy_exist():
     return exists('chain.txt')
 
 
-# TODO finish this
+# Load local copy from chain.txt
 def load_local_copy() -> Blockchain:
-    load_chain = []
-    with open('chain.txt') as outfile:
+    with open('chain.txt', 'r') as outfile:
         for b in outfile:
-            load_chain.append(json.loads(b.toJSON))
+            data = json.loads(b)
+
+    # Use our deserialization function to turn the data into a blockchain structure
+    load_chain = deserialize_blockchain(data)
     return load_chain
 
 
