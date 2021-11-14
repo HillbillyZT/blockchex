@@ -56,10 +56,10 @@ def runClient(serverURL: str):
             makeKey(window)
         elif event == "Lookup block by height":
             blockHeightResult = lookupBlockHeight(serverURL, values['blockHeightInput'])
-            sg.popup(blockHeightResult)
+            sg.popup(blockHeightResult, keep_on_top=True)
         elif event == "Lookup block by hash":
             blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
-            sg.popup(blockHashResult)
+            sg.popup(blockHashResult, keep_on_top=True)
         elif event == "About...":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
