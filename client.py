@@ -19,7 +19,8 @@ menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
 layout = [[sg.Menu(menu_def, tearoff=True)],
           [sg.Button('Mine a block')],
           [sg.Button('Download Current Chain')],
-          [sg.Button('Lookup block by height')],
+          [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height')],
+          [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash')],
           [sg.Button('Generate a new key')],
           [sg.Text('No current key', key='walletText')],
           [sg.Button('Close')]
@@ -55,7 +56,11 @@ def runClient(serverURL: str):
         elif event == 'Generate a new key':
             makeKey(window)
         elif event == "Lookup block by height":
-            lookupBlockHeight(serverURL, 2)
+            blockHeightResult = lookupBlockHeight(serverURL, values['blockHeightInput'])
+            sg.popup(blockHeightResult)
+        elif event == "Lookup block by hash":
+            blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
+            sg.popup(blockHashResult)
 
     window.close()
 
@@ -93,10 +98,12 @@ def lookupBlockHeight(serverURL, height: int):
     b = requests.get(heightURL)
     with open('block.txt', 'w') as outfile:
         outfile.write(str(b.text))
+    return str(b.text)
 
 
 def lookupBlockHash(serverURL, hash: int):
-    hashURL = serverURL + '/blockHeight/' + str(hash)
+    hashURL = serverURL + '/blockHash/' + str(hash)
     b = requests.get(hashURL)
     with open('block.txt', 'w') as outfile:
         outfile.write(str(b.text))
+    return str(b.text)
