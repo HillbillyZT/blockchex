@@ -1,10 +1,9 @@
 import PySimpleGUI as sg
 import requests
 import json
-from flask import jsonify, Flask
 from crypto import makePrivateKey
 import keyring
-from os.path import exists
+import webbrowser
 
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
@@ -16,7 +15,7 @@ menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
             ['&Help', '&About...']]
 
 # Layout for the objects inside the window
-layout = [[sg.Menu(menu_def, tearoff=True)],
+layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Mine a block')],
           [sg.Button('Download Current Chain')],
           [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height')],
@@ -61,6 +60,8 @@ def runClient(serverURL: str):
         elif event == "Lookup block by hash":
             blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
             sg.popup(blockHashResult)
+        elif event == "About...":
+            webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
     window.close()
 
