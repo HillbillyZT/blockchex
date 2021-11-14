@@ -5,6 +5,8 @@ from crypto import makePrivateKey
 import keyring
 import webbrowser
 
+with open('keys.txt', 'r') as outfile:
+    currentWallet = outfile.readline()
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
@@ -21,7 +23,7 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height')],
           [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash')],
           [sg.Button('Generate a new key')],
-          [sg.Text('No current key', key='walletText')],
+          [sg.Text('Wallet: ' + currentWallet, key='walletText')],
           [sg.Button('Close')]
           ]
 
