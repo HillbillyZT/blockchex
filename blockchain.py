@@ -214,7 +214,7 @@ def lookup_block_by_hash(findHash: str) -> Union[Block, str]:
 
 # Input a height value, return either a block or a string
 def lookup_block_by_height(findBlockHeight: int) -> Union[Block, str]:
-    if 0 <= int(findBlockHeight) <= len(blockchain):
+    if 0 <= int(findBlockHeight) <= len(blockchain) - 1:
         return blockchain[int(findBlockHeight)]
-    invalid_input = "Please input a valid block height between 0 and " + str(len(blockchain))
+    invalid_input = "Please input a valid block height between 0 and " + str(len(blockchain) - 1)
     return invalid_input

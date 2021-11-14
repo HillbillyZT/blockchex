@@ -1,1 +1,1 @@
-"No block found with that hash"
+"Please input a valid block height between 0 and 14"
