@@ -5,6 +5,9 @@ from functools import reduce
 from ecdsa.keys import VerifyingKey
 
 
+# Easy number to do math with :D
+COINBASE_PAYOUT = 10
+
 # Transaction outputs
 class TxOut:
     def __init__(self, address: str, amount: float) -> None:
@@ -121,7 +124,7 @@ def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[Unspen
 # Yeah this can be done later its boring
 # TODO(Chris) this shit
 def isValidTransactionStructure(tx: Transaction) -> bool:
-    pass
+    return True
 
 
 # Validate a TxIn
@@ -146,6 +149,10 @@ def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
 
 # Validate a full Transaction
 def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> bool:
+    if not isValidTransactionStructure(tx):
+        print("TX structure is invalid")
+        return False
+    
     if(getTransactionId(tx) != tx.id):
         print('Invalid transaction ID: ' + str(tx.id))
         return False
@@ -173,6 +180,81 @@ def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> b
     return True
 
 
+def validateCoinbaseTX(tx: Transaction, index: int) -> bool:
+    if not tx:
+        print("TX is null")
+        return False
+    
+    if getTransactionId(tx) != tx.id:
+        print("TXID is invalid")
+        return False
+    
+    if len(tx.txIns) != 1:
+        print("Coinbase TX requires exactly 1 input")
+        return False
+    
+    if tx.txIns[0].outIndex != index:
+        print("Coinbase TX must include index and match block index")
+        return False
+    
+    if len(tx.txOuts) != 1:
+        print("Coinbase TX requires exactly 1 output.")
+        return False
+    
+    if tx.txOuts[0].amount != COINBASE_PAYOUT:
+        print("Coinbase amount is invalid.")
+        return False
+    
+    return True
+
+
+def validateFullBlockTransactions(txs: list[Transaction], unspentTxOuts: list[UnspentTxOut], index: int) -> bool:
+    coinbase = txs[0]
+    if not validateCoinbaseTX(coinbase, index):
+        print("Invalid coinbase tx")
+        return False
+    
+    for tx in txs:
+        for i in range(0,len(tx.txIns)-1):
+            for j in range(i, len(tx.txIns)):
+                if str(tx.txIns[i]) == str(tx.txIns[j]):
+                    print("Duplicate txin")
+                    return False
+    
+    nonCoinbase = txs[1:]
+    for i in range(0, len(nonCoinbase)):
+        nonCoinbase[i] = validateTransaction(nonCoinbase[i], unspentTxOuts)
+    
+    # Only if all TXs are valid
+    return all(nonCoinbase)
+
+
+def processTransactions(txs: list[Transaction], unspentTxOuts: list[UnspentTxOut], index: int):
+    for tx in txs:
+        if not isValidTransactionStructure(tx):
+            print("borked")
+            return None
+    
+    if not validateFullBlockTransactions(txs, unspentTxOuts, index):
+        print("Invalid transactions in block")
+        return None
+    
+    return updateUnspent(txs, unspentTxOuts)
+    
+    
+
+def makeCoinbaseTX(address: str, index: int) -> Transaction:
+    tx: Transaction = Transaction()
+    txin: TxIn = TxIn("", index, "")
+    
+    tx.txIns = [txin]
+    txout = TxOut(address, COINBASE_PAYOUT)
+    tx.txOuts = [txout]
+    tx.id = getTransactionId(tx)
+    
+    return tx
+
+    
 
 # ----- Testing ----- #
 

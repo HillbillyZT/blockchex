@@ -74,9 +74,6 @@ def compare_heights(peer_latest: bc.Block, target: str) -> None:
             logging.info("Peer ahead one block, attempting to validate and add...")
             if add_block_to_chain(peer_latest):
                 logging.info("Block successfully added.")
-
-                # This call may be unnecessary, handled by add_block_to_chain()
-                broadcast_block(peer_latest)
             else:
                 logging.info("Block addition failed. Structure likely invalid.")
         else:

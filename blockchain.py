@@ -1,11 +1,15 @@
+from wallet import get_public_key_from_wallet
+from crypto import Transaction, UnspentTxOut
 from hashlib import sha256
 import logging
 import time
 import json
 from typing import Union
-
+import p2p_http
+import crypto
 from flask import Flask, jsonify, request
 from os.path import exists
+import wallet
 
 
 class Block:
@@ -28,6 +32,8 @@ class Block:
 
 
 Blockchain = list[Block]
+unspentTxOuts: list[UnspentTxOut] = []
+
 
 # timestamp = time.time()
 # new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
@@ -99,22 +105,41 @@ def deserialize_blockchain(bclist: list) -> Blockchain:
     return bc_ds
 
 
-def add_block(block):
+def add_block(block: Block) -> bool:
     if is_valid_block(block, get_latest_block()):
-        blockchain.append(block)
+        newUnspent: list[UnspentTxOut] = crypto.processTransactions(block.data)
+        if not newUnspent:
+            return False
+        else:
+            blockchain.append(block)
+            p2p_http.broadcast_block(block)
+            return True
+    else:
+        return False
 
 
-def generate_next_block(data: str):
+def generate_next_block_generic(data: list[Transaction]):
     previous = get_latest_block()
     block = Block(previous.index + 1, "", previous.hash, time.time(), data, GL_DIFFICULTY)
-
-    # Calculates nonce and hash
+    
     solve_block(block)
-
+    
     # Print the block to the console and add it to the chain
     print(block)
     add_block(block)
     return block
+
+# No additional TX
+def generate_next_block(data: str):
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(crypto.get_public_key_from_wallet(), get_latest_block().index+1)
+    return generate_next_block_generic([coinbase_tx])
+
+# Additional TX
+def generate_next_block_with_transaction(peer_address: str, amount: float):
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(crypto.get_public_key_from_wallet(), get_latest_block().index+1)
+    tx: Transaction = wallet.build_tx(peer_address, amount, wallet.get_private_key_from_wallet(), unspentTxOuts)
+    data: list[Transaction] = [coinbase_tx, tx]
+    return generate_next_block_generic(data)
 
 
 # New block is <60s behind the previous block
