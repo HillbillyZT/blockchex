@@ -17,17 +17,17 @@ sg.theme('DarkBlack1')
 # ------ Menu Definition ------ #
 menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
             ['&View', ['Block', ['By Height', 'By Hash', ], 'Chain'], ],
-            ['&Help', '&About...']]
+            ['&Help', '&About']]
 
 # ----- Layout Definition ----- #
 # Layout for the objects inside the window
 # Key value allows us to update/use variable by reference
 layout = [[sg.Menu(menu_def, tearoff=False)],
-          [sg.Button('Mine a block')],
-          [sg.Button('Download Current Chain')],
-          [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height')],
-          [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash')],
-          [sg.Button('Generate a new key')],
+          [sg.Button('Mine a block', key='mineBlock')],
+          [sg.Button('Download Current Chain', key='download')],
+          [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height', key='lookupHeight')],
+          [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash', key='lookupHash')],
+          [sg.Button('Generate a new key', key='keyGen')],
           [sg.Text('Wallet: ' + currentWallet, key='walletText')],
           [sg.Button('Close')]
           ]
@@ -54,19 +54,19 @@ def runClient(serverURL: str):
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == 'Close':
             break
-        elif event == 'Mine a block':
+        elif event == 'mineBlock':
             mineBlock(serverURL)
-        elif event == 'Download Current Chain':
+        elif event == 'download':
             saveChain(serverURL)
-        elif event == 'Generate a new key':
+        elif event == 'keyGen':
             makeKey(window)
-        elif event == "Lookup block by height":
+        elif event == "lookupHeight":
             blockHeightResult = lookupBlockHeight(serverURL, values['blockHeightInput'])
             sg.popup(blockHeightResult, keep_on_top=True)
-        elif event == "Lookup block by hash":
+        elif event == "lookupHash":
             blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
             sg.popup(blockHashResult, keep_on_top=True)
-        elif event == "About...":
+        elif event == "About":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
     window.close()
@@ -97,7 +97,8 @@ def saveChain(serverURL):
 def makeKey(window):
     newKey = makePrivateKey()
     newKey = newKey.to_string().hex()
-    window['walletText'].update(newKey)
+    newKeyText = 'Wallet: ' + newKey
+    window['walletText'].update(newKeyText)
     with open('keys.txt', 'a') as outfile:
         outfile.write(newKey)
         outfile.write('\n')
