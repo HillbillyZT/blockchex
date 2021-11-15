@@ -6,6 +6,7 @@ import client
 import p2p_http
 from threading import Thread
 import time
+import socket
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -115,7 +116,11 @@ if __name__ == '__main__':
         print("local copy loaded")
 
     # Flask server url is hardcoded until we can figure out how to automatically retrieve it
-    serverURL = 'http://192.168.0.4:5000'
+    #serverURL = 'http://192.168.0.4:5000'
+
+    hostURL = socket.gethostbyname(socket.gethostname())
+    serverURL = 'http://' + hostURL + ':5000/'
+    print("Server URL is: " + serverURL)
 
     # Run server and client on separate threads
     Thread(target=start_flask).start()
