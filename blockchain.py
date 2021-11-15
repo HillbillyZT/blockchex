@@ -113,6 +113,8 @@ def add_block(block: Block) -> bool:
         else:
             blockchain.append(block)
             p2p_http.broadcast_block(block)
+            global unspentTxOuts
+            unspentTxOuts = newUnspent
             return True
     else:
         return False
