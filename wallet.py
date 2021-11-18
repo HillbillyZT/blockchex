@@ -4,12 +4,13 @@ import crypto
 
 # Get from file
 def get_private_key_from_wallet() -> SigningKey:
-    pass
+    # Temporarily gonna just use a default
+    return SigningKey.generate()
 
 # Not actually from file
 def get_public_key_from_wallet() -> VerifyingKey:
-    private_key = get_private_key_from_wallet()
-    public_key = private_key.get_verifying_key()
+    private_key: SigningKey = get_private_key_from_wallet()
+    public_key: VerifyingKey = private_key.get_verifying_key()
     return public_key
 
 def generate_new_private_key() -> SigningKey:

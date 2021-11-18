@@ -13,6 +13,9 @@ class TxOut:
     def __init__(self, address: str, amount: float) -> None:
         self.address = address
         self.amount = amount
+    
+    def __str__(self) -> str:
+        return str(self.address) + str(self.amount)
 
 
 # Transaction inputs
@@ -21,6 +24,9 @@ class TxIn:
         self.outId = outId
         self.outIndex = outIndex
         self.signature = signature
+    
+    def __str__(self) -> str:
+        return str(self.outId) + str(self.outIndex) + str(self.signature)
 
 
 # Transaction class containing lists of all txs in and out
@@ -29,6 +35,20 @@ class Transaction:
         self.id = id
         self.txIns = txIns
         self.txOuts = txOuts
+    
+    def __str__(self) -> str:
+        return str(self.id) + str(self.txIns) + str(self.txOuts)
+    
+    def to_dict(u):
+        if isinstance(u, Transaction):
+            mydict = {
+                "id": u.id,
+                "txIns": u.txIns.__dict__,
+                "txOuts": u.txOuts
+            }
+            return mydict
+        else:
+            print("cry")
 
 
 # We will collect all of the relevant unspent outputs as these
@@ -100,17 +120,26 @@ def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[Unspen
     # Get all of the txOuts of new transactions, merge into one list
     unspentTxOuts_additional: list[UnspentTxOut]
     # This may need to be reduced
+    
+    def local_build_txout(var, tx):
+        (txout, idx) = var
+        return UnspentTxOut(tx.id, idx, txout.address, txout.amount)
+        
+    # unspentTxOuts_additional = [*map(lambda tx: \
+    #     list(map(local_build_txout, enumerate(tx.txOuts))), \
+    #     newTransactions)]
+    
     unspentTxOuts_additional = [*map(lambda tx: \
-        map(lambda txout, idx: UnspentTxOut(tx.id, idx, txout.address, txout.amount), tx.txOuts), \
-        enumerate(newTransactions))]
+        [UnspentTxOut(tx.id, idx, txout.address, txout.amount) for idx, txout in enumerate(tx.txOuts)], \
+        newTransactions)]
     
     # Reduced:
-    unspentTxOuts_additional = sum(unspentTxOuts_additional, [])
+    unspentTxOuts_additional = sum(list(unspentTxOuts_additional), [])
     
     # Get all of the txIns of new transactions, merge into one list
     spentTxOuts: list[UnspentTxOut] = list(map(lambda x: x.txIns, newTransactions))
     spentTxOuts = sum(spentTxOuts, [])
-    spentTxOuts = list(map(lambda txin: UnspentTxOut(txin._txOutId, txin._txOutIndex, '', 0), spentTxOuts))
+    spentTxOuts = list(map(lambda txin: UnspentTxOut(txin.outId, txin.outIndex, '', 0), spentTxOuts))
     
     # Determine full set of unspent txouts by adding new txouts and removing spent ones
     newUnspentTxOuts: list[UnspentTxOut] = list(filter(lambda utxo: \

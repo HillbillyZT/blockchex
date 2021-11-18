@@ -1,6 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import blockchain as bc
 import logging
 import requests
+if TYPE_CHECKING:
+    from blockchain import Block, Blockchain
 
 logging.basicConfig(level=logging.INFO)
 
@@ -11,14 +15,14 @@ targets = set()
 
 
 # Send the block to every open connection
-def broadcast_block(b: bc.Block) -> None:
+def broadcast_block(b: Block) -> None:
     for target in targets:
         # we do some POST requests
         r = requests.post(f"{target}/receiveBlock", data=b.toJSON())
 
 
 # Calls /queryLatest from main.py to return the latest block on our local chain
-def query_latest(target: str) -> bc.Block:
+def query_latest(target: str) -> Block:
     # implement request for latest, handle data
     r = requests.get(f"{target}/queryLatest")
     j = r.json()
@@ -27,7 +31,7 @@ def query_latest(target: str) -> bc.Block:
 
 
 # Calls /queryAll from main.py to get an updated blockchain from our peers
-def query_all(target: str) -> bc.Blockchain:
+def query_all(target: str) -> Blockchain:
     r = requests.get(f"{target}/queryAll")
     j = r.json()
     j_s: bc.Blockchain = bc.deserialize_blockchain(j)
@@ -35,7 +39,7 @@ def query_all(target: str) -> bc.Blockchain:
 
 
 # Adds block to chain if it is valid and returns a Boolean based on the result
-def add_block_to_chain(b: bc.Block) -> bool:
+def add_block_to_chain(b: Block) -> bool:
     if bc.is_valid_block(b, bc.get_latest_block()):
         bc.add_block(b)
         return True
@@ -56,7 +60,7 @@ def handle_query_all(target):
 
 
 # Compare height of peer vs our chain
-def compare_heights(peer_latest: bc.Block, target: str) -> None:
+def compare_heights(peer_latest: Block, target: str) -> None:
     self_latest = bc.get_latest_block()
 
     # Verify the block structure

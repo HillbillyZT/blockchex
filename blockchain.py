@@ -11,6 +11,11 @@ from flask import Flask, jsonify, request
 from os.path import exists
 import wallet
 
+def jsonDefaultCustom(obj):
+    if isinstance(obj, bytes):
+        return obj.decode()
+    else:
+        return obj.__dict__
 
 class Block:
     def __init__(self, index, hash, previous_hash, timestamp, data, difficulty, nonce=0):
@@ -28,12 +33,12 @@ class Block:
             self.difficulty) + str(self.nonce)
 
     def toJSON(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=False, indent=4)
+        return json.dumps(self, default=lambda o : o.__dict__, sort_keys=False, indent=4)
+
 
 
 Blockchain = list[Block]
 unspentTxOuts: list[UnspentTxOut] = []
-
 
 # timestamp = time.time()
 # new_genesis = Block(0, "0" * 64, "", time.time(), "Genesis", 0)
@@ -106,14 +111,14 @@ def deserialize_blockchain(bclist: list) -> Blockchain:
 
 
 def add_block(block: Block) -> bool:
+    global unspentTxOuts
     if is_valid_block(block, get_latest_block()):
-        newUnspent: list[UnspentTxOut] = crypto.processTransactions(block.data)
+        newUnspent: list[UnspentTxOut] = crypto.processTransactions(block.data, unspentTxOuts, block.index)
         if not newUnspent:
             return False
         else:
             blockchain.append(block)
             p2p_http.broadcast_block(block)
-            global unspentTxOuts
             unspentTxOuts = newUnspent
             return True
     else:
@@ -133,12 +138,12 @@ def generate_next_block_generic(data: list[Transaction]):
 
 # No additional TX
 def generate_next_block(data: str):
-    coinbase_tx: Transaction = crypto.makeCoinbaseTX(crypto.get_public_key_from_wallet(), get_latest_block().index+1)
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet(), get_latest_block().index+1)
     return generate_next_block_generic([coinbase_tx])
 
 # Additional TX
 def generate_next_block_with_transaction(peer_address: str, amount: float):
-    coinbase_tx: Transaction = crypto.makeCoinbaseTX(crypto.get_public_key_from_wallet(), get_latest_block().index+1)
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet(), get_latest_block().index+1)
     tx: Transaction = wallet.build_tx(peer_address, amount, wallet.get_private_key_from_wallet(), unspentTxOuts)
     data: list[Transaction] = [coinbase_tx, tx]
     return generate_next_block_generic(data)
