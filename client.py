@@ -108,8 +108,8 @@ def makeKey(window):
 def lookupBlockHeight(serverURL, height: int):
     heightURL = serverURL + '/blockHeight/' + str(height)
     b = requests.get(heightURL)
-    with open('block.txt', 'w') as outfile:
-        outfile.write(str(b.text))
+    # with open('block.txt', 'w') as outfile:
+    #     outfile.write(str(b.text))
     return str(b.text)
 
 
@@ -117,6 +117,6 @@ def lookupBlockHeight(serverURL, height: int):
 def lookupBlockHash(serverURL, hash: int):
     hashURL = serverURL + '/blockHash/' + str(hash)
     b = requests.get(hashURL)
-    with open('block.txt', 'w') as outfile:
-        outfile.write(str(b.text))
+    # with open('block.txt', 'w') as outfile:
+    #     outfile.write(str(b.text))
     return str(b.text)

@@ -1,17 +1,21 @@
 from ecdsa.keys import SigningKey, VerifyingKey
 from crypto import TxIn, UnspentTxOut, TxOut, Transaction, getTransactionId, signTxIn
 import crypto
+from os.path import exists
+
 
 # Get from file
 def get_private_key_from_wallet() -> SigningKey:
     # Temporarily gonna just use a default
     return SigningKey.generate()
 
+
 # Not actually from file
 def get_public_key_from_wallet() -> VerifyingKey:
     private_key: SigningKey = get_private_key_from_wallet()
     public_key: VerifyingKey = private_key.get_verifying_key()
     return public_key
+
 
 def generate_new_private_key() -> SigningKey:
     key = SigningKey.generate()
@@ -21,10 +25,16 @@ def generate_new_private_key() -> SigningKey:
 # The stuff Bailey did in client should move here !!!
 def init_wallet() -> None:
     # Check for existing key file
-    # if (existsKey):
-    #   return;
-    # else:
-    #   writeFile(key)
+    if exists('key.txt'):
+        with open('keys.txt', 'r') as outfile:
+            privateKey = outfile.readline()
+        return privateKey
+    else:
+        newKey = crypto.makePrivateKey()
+        newKey = newKey.to_string().hex()
+        with open('keys.txt', 'a') as outfile:
+            outfile.write(newKey)
+        return newKey
     pass
 
 
@@ -40,6 +50,7 @@ def get_balance(address: str, unspentTxOuts: list[UnspentTxOut]) -> float:
     
     return sum
 
+
 def find_required_txouts(amount: float, ourUnspentTxOuts: list[UnspentTxOut]) -> tuple[list[UnspentTxOut], float]:
     # Algorithm from NaiveCoin:
     current_amount = 0
@@ -53,6 +64,7 @@ def find_required_txouts(amount: float, ourUnspentTxOuts: list[UnspentTxOut]) ->
     
     # If we get here, we did not have enough money to make the TX
     return (False, False)
+
 
 # Make sure that we spent the total of the TxOut, sending the extra coins back to ourselves
 def build_txouts(peer_address: str, my_address: str, amount: float, leftover: float):

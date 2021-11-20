@@ -11,11 +11,13 @@ from flask import Flask, jsonify, request
 from os.path import exists
 import wallet
 
+
 def jsonDefaultCustom(obj):
     if isinstance(obj, bytes):
         return obj.decode()
     else:
         return obj.__dict__
+
 
 class Block:
     def __init__(self, index, hash, previous_hash, timestamp, data, difficulty, nonce=0):
@@ -34,7 +36,6 @@ class Block:
 
     def toJSON(self):
         return json.dumps(self, default=lambda o : o.__dict__, sort_keys=False, indent=4)
-
 
 
 Blockchain = list[Block]
@@ -136,10 +137,12 @@ def generate_next_block_generic(data: list[Transaction]):
     add_block(block)
     return block
 
+
 # No additional TX
 def generate_next_block(data: str):
     coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet().to_string().hex(), get_latest_block().index+1)
     return generate_next_block_generic([coinbase_tx])
+
 
 # Additional TX
 def generate_next_block_with_transaction(peer_address: str, amount: float):
