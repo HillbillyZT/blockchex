@@ -66,7 +66,7 @@ def build_txouts(peer_address: str, my_address: str, amount: float, leftover: fl
 
 def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentTxOuts: list[UnspentTxOut]) -> Transaction:
     my_public_key: VerifyingKey = private_key.verifying_key
-    my_address = my_public_key.to_string()
+    my_address = my_public_key.to_string().decode()
     my_utxos: list[UnspentTxOut] = filter(lambda utxo: utxo._address == my_address, unspentTxOuts)
     
     incl_utxo, leftover = find_required_txouts(amount, my_utxos)
@@ -86,7 +86,7 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
     
     # Sign each TxIn
     def signall(txin: TxIn, index):
-        txin.signature = signTxIn(tx, index, private_key.to_string(), unspentTxOuts)
+        txin.signature = signTxIn(tx, index, private_key.to_string().decode(), unspentTxOuts)
         return txin
     tx.txIns = map(signall, tx.txIns)
     
