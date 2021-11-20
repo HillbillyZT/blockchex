@@ -1,6 +1,8 @@
 import PySimpleGUI as sg
 import requests
 import json
+
+import wallet
 from crypto import makePrivateKey
 import keyring
 import webbrowser
@@ -25,6 +27,7 @@ menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
 layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Mine a block', key='mineBlock')],
           [sg.Button('Download Current Chain', key='download')],
+          [sg.Button('Send Crypto', key='txPopup')],
           [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height', key='lookupHeight')],
           [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash', key='lookupHash')],
           [sg.Button('Generate a new key', key='keyGen')],
@@ -43,6 +46,17 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
 # TODO Wallet balance screen
 
 
+def txPopup():
+    layout = [
+        [sg.Text('Send to: '), sg.InputText(key='peer_address')],
+        [sg.Text('Amount: '), sg.InputText(key='amount')],
+        [sg.Button('Submit', key='txSubmit')]
+    ]
+    window = sg.Window("Create Transaction", layout, use_default_focus=False, finalize=True, modal=True)
+    event, values = window.read()
+    window.close()
+    return values
+
 # While loop to continually check for events within the window
 # Perform relevant actions when necessary
 # Might have to thread things eventually so client doesn't lock up when performing a long task
@@ -58,6 +72,11 @@ def runClient(serverURL: str):
             mineBlock(serverURL)
         elif event == 'download':
             saveChain(serverURL)
+        elif event == 'txPopup':
+            txValues = txPopup()
+            print(txValues['peer_address'], txValues['amount'])
+            # TODO Pass unspentTxOuts to build_tx below
+            # wallet.build_tx(str(txValues['peer_address']), float(txValues['amount']), currentWallet, )
         elif event == 'keyGen':
             makeKey(window)
         elif event == "lookupHeight":
