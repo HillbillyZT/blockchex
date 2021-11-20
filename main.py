@@ -119,7 +119,7 @@ if __name__ == '__main__':
     #serverURL = 'http://192.168.0.4:5000'
 
     hostURL = socket.gethostbyname(socket.gethostname())
-    serverURL = 'http://' + hostURL + ':5000/'
+    serverURL = 'http://' + hostURL + ':5000'
     print("Server URL is: " + serverURL)
 
     # Run server and client on separate threads
