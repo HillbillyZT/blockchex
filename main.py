@@ -7,6 +7,7 @@ import p2p_http
 from threading import Thread
 import time
 import socket
+import wallet
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -110,6 +111,9 @@ def start_flask():
 
 # Main
 if __name__ == '__main__':
+    # Check/make default keys:
+    wallet.init_wallet()
+    
     # Check if we have a local copy stored
     if blockchain.does_local_copy_exist():
         blockchain.replace_chain(blockchain.load_local_copy())
