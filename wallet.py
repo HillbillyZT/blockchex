@@ -86,7 +86,7 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
     
     # Sign each TxIn
     def signall(txin: TxIn, index):
-        txin.signature = signTxIn(tx, index, private_key.to_string().decode(), unspentTxOuts)
+        txin.signature = signTxIn(tx, index, private_key.to_string().hex(), unspentTxOuts)
         return txin
     tx.txIns = map(signall, tx.txIns)
     

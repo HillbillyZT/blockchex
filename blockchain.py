@@ -138,12 +138,12 @@ def generate_next_block_generic(data: list[Transaction]):
 
 # No additional TX
 def generate_next_block(data: str):
-    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet(), get_latest_block().index+1)
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet().to_string().hex(), get_latest_block().index+1)
     return generate_next_block_generic([coinbase_tx])
 
 # Additional TX
 def generate_next_block_with_transaction(peer_address: str, amount: float):
-    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet(), get_latest_block().index+1)
+    coinbase_tx: Transaction = crypto.makeCoinbaseTX(wallet.get_public_key_from_wallet().to_string().hex(), get_latest_block().index+1)
     tx: Transaction = wallet.build_tx(peer_address, amount, wallet.get_private_key_from_wallet(), unspentTxOuts)
     data: list[Transaction] = [coinbase_tx, tx]
     return generate_next_block_generic(data)
