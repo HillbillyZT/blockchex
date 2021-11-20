@@ -7,7 +7,10 @@ from os.path import exists
 # Get from file
 def get_private_key_from_wallet() -> SigningKey:
     # Temporarily gonna just use a default
-    return SigningKey.generate()
+    with open('keys.txt', 'r') as outfile:
+        privateKey = outfile.readline()
+        keyobj = SigningKey.from_string(privateKey.encode())
+        return keyobj
 
 
 # Not actually from file
@@ -22,20 +25,19 @@ def generate_new_private_key() -> SigningKey:
     return key
 
 
-# The stuff Bailey did in client should move here !!!
+# Checks for the existence of a key file first
+# If no key file exists, make a key, add to file.
+# If a key file exists, exit. The functions above
+# will use it.
 def init_wallet() -> None:
     # Check for existing key file
     if exists('key.txt'):
-        with open('keys.txt', 'r') as outfile:
-            privateKey = outfile.readline()
-        return privateKey
+        return
     else:
         newKey = crypto.makePrivateKey()
         newKey = newKey.to_string().hex()
         with open('keys.txt', 'a') as outfile:
             outfile.write(newKey)
-        return newKey
-    pass
 
 
 def get_balance(address: str, unspentTxOuts: list[UnspentTxOut]) -> float:
