@@ -23,6 +23,7 @@ def get_public_key_from_wallet() -> VerifyingKey:
 def get_private_key_from_string(key: str) -> SigningKey:
     return SigningKey.from_string(bytearray.fromhex(key))
 
+
 def generate_new_private_key() -> SigningKey:
     key = SigningKey.generate()
     return key
@@ -34,7 +35,7 @@ def generate_new_private_key() -> SigningKey:
 # will use it.
 def init_wallet() -> None:
     # Check for existing key file
-    if exists('key.txt'):
+    if exists('keys.txt'):
         return
     else:
         newKey = crypto.makePrivateKey()
