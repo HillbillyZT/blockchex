@@ -263,9 +263,11 @@ def validateFullBlockTransactions(txs: list[Transaction], unspentTxOuts: list[Un
         return False
     
     for tx in txs:
-        for i in range(0,len(tx.txIns)-1):
-            for j in range(i, len(tx.txIns)):
-                if str(tx.txIns[i]) == str(tx.txIns[j]):
+        for i in range(0,len(tx.txIns)-2):
+            for j in range(i+1, len(tx.txIns)):
+                one = str(tx.txIns[i])
+                two = str(tx.txIns[j])
+                if one == two:
                     print("Duplicate txin")
                     return False
     
