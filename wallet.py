@@ -23,6 +23,7 @@ def get_public_key_from_wallet() -> VerifyingKey:
 def get_private_key_from_string(key: str) -> SigningKey:
     return SigningKey.from_string(bytearray.fromhex(key))
 
+
 def generate_new_private_key() -> SigningKey:
     key = SigningKey.generate()
     return key

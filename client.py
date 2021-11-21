@@ -3,7 +3,7 @@ import blockchain
 import PySimpleGUI as sg
 import requests
 import json
-
+import pyperclip
 import wallet
 from crypto import makePrivateKey
 import keyring
@@ -12,9 +12,9 @@ import webbrowser
 
 # Find first private key stored in keys.txt before defining our menu
 # This lets us populate the field on declaration
-# with open('keys.txt', 'r') as outfile:
-#     currentWallet = outfile.readline()
-currentWallet = "testing"
+# TODO Check if this file exists first
+with open('keys.txt', 'r') as outfile:
+    currentWallet = outfile.readline()
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
@@ -35,6 +35,7 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash', key='lookupHash')],
           [sg.Button('Generate a new key', key='keyGen')],
           [sg.Text('Wallet: ' + currentWallet, key='walletText')],
+          [sg.Button('Copy Wallet Address', key='copyWallet')],
           [sg.Button('Close')]
           ]
 
@@ -59,6 +60,7 @@ def txPopup():
     event, values = window.read()
     window.close()
     return values
+
 
 # While loop to continually check for events within the window
 # Perform relevant actions when necessary
@@ -95,6 +97,8 @@ def runClient(serverURL: str):
         elif event == "lookupHash":
             blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
             sg.popup(blockHashResult, keep_on_top=True)
+        elif event == 'copyWallet':
+            pyperclip.copy(currentWallet)
         elif event == "About":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
