@@ -12,8 +12,9 @@ import webbrowser
 
 # Find first private key stored in keys.txt before defining our menu
 # This lets us populate the field on declaration
-with open('keys.txt', 'r') as outfile:
-    currentWallet = outfile.readline()
+# with open('keys.txt', 'r') as outfile:
+#     currentWallet = outfile.readline()
+currentWallet = "testing"
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
@@ -64,11 +65,17 @@ def txPopup():
 # Might have to thread things eventually so client doesn't lock up when performing a long task
 def runClient(serverURL: str):
     # Initialize window with title, our layout defined above, and a size
-    window = sg.Window('Mining Client', layout, size=(600, 400))
+    window = sg.Window('Mining Client', layout, size=(600, 400), finalize=True)
 
+    with open('keys.txt', 'r') as outfile:
+        currentWallet = outfile.readline()
+    
+    
     while True:
         event, values = window.read()
+        window['walletText'].update(currentWallet)
         if event == sg.WIN_CLOSED or event == 'Close':
+            saveChain(serverURL)
             break
         elif event == 'mineBlock':
             mineBlock(serverURL)

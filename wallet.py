@@ -34,7 +34,7 @@ def generate_new_private_key() -> SigningKey:
 # will use it.
 def init_wallet() -> None:
     # Check for existing key file
-    if exists('key.txt'):
+    if exists('keys.txt'):
         return
     else:
         newKey = crypto.makePrivateKey()

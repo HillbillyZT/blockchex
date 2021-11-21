@@ -246,7 +246,8 @@ def replace_chain(newchain: Blockchain) -> bool:
     if is_blockchain_valid(newchain) and get_cumulative_difficulty(newchain) > get_cumulative_difficulty(blockchain):
         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
         for block in newchain:
-            unspentTxOuts = crypto.updateUnspent(block.data, unspentTxOuts)
+            if not isinstance(block.data, str):
+                unspentTxOuts = crypto.updateUnspent(block.data, unspentTxOuts)
         blockchain = newchain
         return True
     else:
