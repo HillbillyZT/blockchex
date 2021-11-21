@@ -72,7 +72,10 @@ def getTransactionId(tx: Transaction) -> str:
 
 # TODO Find our unspent outputs; tokens we currently have to spend ?
 def findUnspentTxOut(txId: str, index: int, unspentTxOuts: list[UnspentTxOut]) -> UnspentTxOut:
-    return next(filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts))
+    for utxo in unspentTxOuts:
+        if utxo._txOutId == txId and utxo._txOutIndex == index:
+            return utxo
+    # return next(filter(lambda utxo: utxo._txOutId == txId and utxo._txOutIndex == index, unspentTxOuts))
 
 
 # Generate a signing key and return it
@@ -142,8 +145,13 @@ def updateUnspent(newTransactions: list[Transaction], unspentTxOuts: list[Unspen
     spentTxOuts = list(map(lambda txin: UnspentTxOut(txin.outId, txin.outIndex, '', 0), spentTxOuts))
     
     # Determine full set of unspent txouts by adding new txouts and removing spent ones
-    newUnspentTxOuts: list[UnspentTxOut] = list(filter(lambda utxo: \
-        not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts),unspentTxOuts))
+    # newUnspentTxOuts: list[UnspentTxOut] = list(filter(lambda utxo: \
+    #     not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts),unspentTxOuts))
+    
+    newUnspentTxOuts = []
+    for utxo in unspentTxOuts:
+        if not findUnspentTxOut(utxo._txOutId, utxo._txOutIndex, spentTxOuts):
+            newUnspentTxOuts.append(utxo)
         
     newUnspentTxOuts.extend(unspentTxOuts_additional)
     

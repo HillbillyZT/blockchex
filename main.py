@@ -101,6 +101,21 @@ def get_block_by_height(findHeight: int):
     b = blockchain.lookup_block_by_height(findHeight)
     return blockchain.convert_block_to_json(b), 200
 
+### Endpoints for balance/TX work ###
+@app.route('/getBalance', methods=['GET'])
+def get_bal():
+    return str(wallet.get_balance(wallet.get_public_key_from_wallet().to_string().hex(), blockchain.unspentTxOuts)), 200
+
+@app.route('/buildTX', methods=['POST'])
+def makeTX():
+    data: str = request.get_data().decode()
+    data_dict: dict = json.loads(data)
+    amt = data_dict['amount']
+    addr = data_dict['address']
+    wallet.build_tx(addr, amt, wallet.get_private_key_from_wallet(), blockchain.unspentTxOuts)
+    
+    return "TX Build Attempted.", 200
+    
 
 # This function starts our flask server
 # and lets our local host determine the address to run it on

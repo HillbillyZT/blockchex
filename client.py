@@ -1,3 +1,5 @@
+from blockchain import Blockchain
+import blockchain
 import PySimpleGUI as sg
 import requests
 import json
@@ -76,7 +78,7 @@ def runClient(serverURL: str):
             txValues = txPopup()
             print(txValues['peer_address'], txValues['amount'])
             # TODO Pass unspentTxOuts to build_tx below
-            # wallet.build_tx(str(txValues['peer_address']), float(txValues['amount']), currentWallet, )
+            wallet.build_tx(str(txValues['peer_address']), float(txValues['amount']), wallet.get_private_key_from_string(currentWallet), blockchain.unspentTxOuts)
         elif event == 'keyGen':
             makeKey(window)
         elif event == "lookupHeight":

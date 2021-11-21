@@ -9,7 +9,7 @@ def get_private_key_from_wallet() -> SigningKey:
     # Temporarily gonna just use a default
     with open('keys.txt', 'r') as outfile:
         privateKey = outfile.readline()
-        keyobj = SigningKey.from_string(privateKey.encode())
+        keyobj = SigningKey.from_string(bytes.fromhex(privateKey))
         return keyobj
 
 
@@ -19,6 +19,9 @@ def get_public_key_from_wallet() -> VerifyingKey:
     public_key: VerifyingKey = private_key.get_verifying_key()
     return public_key
 
+
+def get_private_key_from_string(key: str) -> SigningKey:
+    return SigningKey.from_string(bytearray.fromhex(key))
 
 def generate_new_private_key() -> SigningKey:
     key = SigningKey.generate()
@@ -59,6 +62,7 @@ def find_required_txouts(amount: float, ourUnspentTxOuts: list[UnspentTxOut]) ->
     inclUTxO: list[UnspentTxOut] = []
     
     for utxo in ourUnspentTxOuts:
+        inclUTxO.append(utxo)
         current_amount += utxo._amount
         if current_amount >= amount:
             leftover = current_amount - amount
@@ -80,10 +84,13 @@ def build_txouts(peer_address: str, my_address: str, amount: float, leftover: fl
 
 def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentTxOuts: list[UnspentTxOut]) -> Transaction:
     my_public_key: VerifyingKey = private_key.verifying_key
-    my_address = my_public_key.to_string().decode()
-    my_utxos: list[UnspentTxOut] = filter(lambda utxo: utxo._address == my_address, unspentTxOuts)
+    my_address = my_public_key.to_string().hex()
+    my_utxos: list[UnspentTxOut] = list(filter(lambda utxo: utxo._address == my_address, unspentTxOuts))
     
     incl_utxo, leftover = find_required_txouts(amount, my_utxos)
+    if isinstance(incl_utxo, bool):
+        print("INSUFFICIENT FUNDS")
+        return False
     
     # Try this instead of lambda?
     def to_txin(utxo: UnspentTxOut):
@@ -91,7 +98,7 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
         return txin
     
     # For each of our utxos we need to turn it into a txin
-    unsigned_tx_ins: list[TxIn] = map(to_txin, incl_utxo)
+    unsigned_tx_ins: list[TxIn] = list(map(to_txin, incl_utxo))
     
     tx: Transaction = Transaction()
     tx.txIns = unsigned_tx_ins
@@ -103,5 +110,12 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
         txin.signature = signTxIn(tx, index, private_key.to_string().hex(), unspentTxOuts)
         return txin
     tx.txIns = map(signall, tx.txIns)
+    
+# Testing
+sk = SigningKey.generate()
+pk: VerifyingKey = sk.get_verifying_key()
+
+print(sk.to_string().hex())
+print(pk.to_string().hex())
     
     
