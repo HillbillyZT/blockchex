@@ -9,6 +9,15 @@ from crypto import makePrivateKey
 import keyring
 import webbrowser
 
+KILL_PROCESS: bool = False
+
+# Find first private key stored in keys.txt before defining our menu
+# This lets us populate the field on declaration
+# TODO Check if this file exists first
+# with open('keys.txt', 'r') as outfile:
+#     currentWallet = outfile.readline()
+currentWallet = "testing"
+
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
 
@@ -149,7 +158,8 @@ def runClient(serverURL: str):
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
     window.close()
-
+    global KILL_PROCESS
+    KILL_PROCESS = True
 
 # ----- Function Definitions ----- #
 # These functions get called within our window loop
@@ -204,7 +214,9 @@ def lookupBlockHash(serverURL, hash: int):
 def displayBalance(serverURL):
     balanceURL = serverURL + '/getBalance'
     b = requests.get(balanceURL)
-    return str(b.text)
+    bal = float(b.text)
+    bal_prec = f"{bal:.3f}"
+    return str(bal_prec)
 
 
 def viewChain(serverURL):
