@@ -9,20 +9,13 @@ from crypto import makePrivateKey
 import keyring
 import webbrowser
 
-
-# Find first private key stored in keys.txt before defining our menu
-# This lets us populate the field on declaration
-# TODO Check if this file exists first
-# with open('keys.txt', 'r') as outfile:
-#     currentWallet = outfile.readline()
-currentWallet = "testing"
-
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
 
 # ------ Menu Definition ------ #
-menu_def = [['&Wallet', ['&View', '&Import', '&Export', 'Properties']],
+menu_def = [['&Wallet', ['&View Balance', '&Copy Address']],
             ['&View', ['Block', ['By Height', 'By Hash', ], 'Chain'], ],
+            ['&Network', ['View Connections', 'New Connection'], ],
             ['&Help', '&About']]
 
 # ----- Layout Definition ----- #
@@ -32,14 +25,15 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Mine a block', key='mineBlock')],
           [sg.Button('Download Current Chain', key='download')],
           [sg.Button('Send Crypto', key='txPopup')],
-          [sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height', key='lookupHeight')],
-          [sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash', key='lookupHash')],
-          [sg.Button('Generate a new key', key='keyGen')],
-          [sg.Text('Wallet: ' + currentWallet, key='walletText')],
-          [sg.Button('Copy Wallet Address', key='copyWallet')],
-          [sg.Button('Display balance', key='displayBalance')],
+          #[sg.InputText(key='blockHeightInput'), sg.Button('Lookup block by height', key='lookupHeight')],
+          #[sg.InputText(key='blockHashInput'), sg.Button('Lookup block by hash', key='lookupHash')],
+          #[sg.Button('Generate a new key', key='keyGen')],
+          [sg.Text('Wallet: ', key='walletText')],
+          #[sg.Button('Copy Wallet Address', key='copyWallet')],
+          #[sg.Button('Display balance', key='displayBalance')],
           [sg.Button('Close')]
           ]
+
 
 # Most of these are goals that will not be addressed within the scope of this semester
 # TODO Start/stop daemon with client
@@ -50,6 +44,39 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
 # TODO Allow user to select between locally stored private keys
 # TODO Basic transaction screen
 # TODO Wallet balance screen
+
+
+def heightPopup():
+    layout = [
+        [sg.Text('Block Height: '), sg.InputText(key='blockHeight')],
+        [sg.Button('Submit')]
+    ]
+    window = sg.Window("Input Height", layout, use_default_focus=False, finalize=True)
+    event, values = window.read()
+    window.close()
+    return values
+
+
+def hashPopup():
+    layout = [
+        [sg.Text('Block Hash: '), sg.InputText(key='blockHash')],
+        [sg.Button('Submit')]
+    ]
+    window = sg.Window("Input Hash", layout, use_default_focus=False, finalize=True)
+    event, values = window.read()
+    window.close()
+    return values
+
+
+def connectionPopup():
+    layout = [
+        [sg.Text('IP Address: '), sg.InputText(key='newConnection')],
+        [sg.Button('Submit')]
+    ]
+    window = sg.Window("Input Peer IP Address", layout, use_default_focus=False, finalize=True)
+    event, values = window.read()
+    window.close()
+    return values
 
 
 def txPopup():
@@ -87,23 +114,37 @@ def runClient(serverURL: str):
             saveChain(serverURL)
         elif event == 'txPopup':
             txValues = txPopup()
-            print(txValues['peer_address'], txValues['amount'])
-            # TODO Pass unspentTxOuts to build_tx below
-            blockchain.generate_next_block_with_transaction(str(txValues['peer_address']), float(txValues['amount']))
-            #wallet.build_tx(str(txValues['peer_address']), float(txValues['amount']), wallet.get_private_key_from_string(currentWallet), blockchain.unspentTxOuts)
-        elif event == 'keyGen':
-            makeKey(window)
-        elif event == "lookupHeight":
-            blockHeightResult = lookupBlockHeight(serverURL, values['blockHeightInput'])
-            sg.popup(blockHeightResult, keep_on_top=True)
-        elif event == "lookupHash":
-            blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
-            sg.popup(blockHashResult, keep_on_top=True)
-        elif event == 'copyWallet':
+            if txValues is not None:
+                blockchain.generate_next_block_with_transaction(str(txValues['peer_address']), float(txValues['amount']))
+        # elif event == 'keyGen':
+        #     makeKey(window)
+        elif event == "By Height":
+            heightNum = heightPopup()
+            if heightNum is not None:
+                blockHeightResult = lookupBlockHeight(serverURL, heightNum['blockHeight'])
+                sg.popup(blockHeightResult, keep_on_top=True)
+        elif event == "By Hash":
+            hashInput = hashPopup()
+            if hashInput is not None:
+                blockHashResult = lookupBlockHash(serverURL, hashInput['blockHash'])
+                sg.popup(blockHashResult, keep_on_top=True)
+        elif event == "Copy Address":
             pyperclip.copy(pubkey)
-        elif event == 'displayBalance':
+        elif event == "View Balance":
             balance = "Balance: " + displayBalance(serverURL)
             sg.popup(balance, keep_on_top=True)
+        elif event == "Chain":
+            chain = viewChain(serverURL)
+            #sg.popup(chain, keep_on_top=True).Layout()
+            #chainPopup(chain)
+        elif event == "New Connection":
+            newAddress = connectionPopup()
+            if newAddress is not None:
+                #Send address to /newpeer
+                createConnection(serverURL, newAddress["newConnection"])
+        elif event == "View Connections":
+            activeConnections = viewConnections(serverURL)
+            sg.popup(activeConnections, keep_on_top=True)
         elif event == "About":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
@@ -163,4 +204,23 @@ def lookupBlockHash(serverURL, hash: int):
 def displayBalance(serverURL):
     balanceURL = serverURL + '/getBalance'
     b = requests.get(balanceURL)
+    return str(b.text)
+
+
+def viewChain(serverURL):
+    chainURL = serverURL + '/chain'
+    b = requests.get(chainURL)
+    return str(b.text)
+
+
+def createConnection(serverURL, newAddress):
+    connectionURL = newAddress + ":5000"
+    postURL = serverURL + '/newPeer'
+    b = requests.post(postURL, data=connectionURL)
+    return
+
+
+def viewConnections(serverURL):
+    connectionURL = serverURL + '/getPeers'
+    b = requests.get(connectionURL)
     return str(b.text)
