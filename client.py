@@ -37,6 +37,7 @@ layout = [[sg.Menu(menu_def, tearoff=False)],
           [sg.Button('Generate a new key', key='keyGen')],
           [sg.Text('Wallet: ' + currentWallet, key='walletText')],
           [sg.Button('Copy Wallet Address', key='copyWallet')],
+          [sg.Button('Display balance', key='displayBalance')],
           [sg.Button('Close')]
           ]
 
@@ -72,12 +73,11 @@ def runClient(serverURL: str):
 
     pubkey = wallet.get_public_key_from_wallet().to_string().hex()
     currentWallet = "Wallet: " + pubkey
-    
-    
+
     while True:
         event, values = window.read(timeout=10)
         window['walletText'].update(currentWallet)
-        # window.refresh()
+
         if event == sg.WIN_CLOSED or event == 'Close':
             saveChain(serverURL)
             break
@@ -101,6 +101,9 @@ def runClient(serverURL: str):
             sg.popup(blockHashResult, keep_on_top=True)
         elif event == 'copyWallet':
             pyperclip.copy(pubkey)
+        elif event == 'displayBalance':
+            balance = "Balance: " + displayBalance(serverURL)
+            sg.popup(balance, keep_on_top=True)
         elif event == "About":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
@@ -154,4 +157,10 @@ def lookupBlockHash(serverURL, hash: int):
     b = requests.get(hashURL)
     # with open('block.txt', 'w') as outfile:
     #     outfile.write(str(b.text))
+    return str(b.text)
+
+
+def displayBalance(serverURL):
+    balanceURL = serverURL + '/getBalance'
+    b = requests.get(balanceURL)
     return str(b.text)
