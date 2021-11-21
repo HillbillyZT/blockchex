@@ -105,10 +105,12 @@ def get_block_by_height(findHeight: int):
     b = blockchain.lookup_block_by_height(findHeight)
     return blockchain.convert_block_to_json(b), 200
 
+
 ### Endpoints for balance/TX work ###
 @app.route('/getBalance', methods=['GET'])
 def get_bal():
     return str(wallet.get_balance(wallet.get_public_key_from_wallet().to_string().hex(), blockchain.unspentTxOuts)), 200
+
 
 @app.route('/buildTX', methods=['POST'])
 def makeTX():
