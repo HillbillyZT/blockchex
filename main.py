@@ -149,11 +149,11 @@ if __name__ == '__main__':
 
     # Run server and client on separate threads
     flaskyboi = Thread(target=start_flask)
-    # flaskyboi.setDaemon(True)
+    flaskyboi.setDaemon(True)
     flaskyboi.start()
     
     clientyboi = Thread(target=client.runClient(serverURL))
-    # clientyboi.setDaemon(True)
+    clientyboi.setDaemon(True)
     clientyboi.start()
 
     # Run an infinite loop of init_p2p

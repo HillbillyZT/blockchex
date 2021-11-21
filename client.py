@@ -166,4 +166,6 @@ def lookupBlockHash(serverURL, hash: int):
 def displayBalance(serverURL):
     balanceURL = serverURL + '/getBalance'
     b = requests.get(balanceURL)
-    return str(b.text)
+    bal = float(b.text)
+    bal_prec = f"{bal:.3f}"
+    return str(bal_prec)
