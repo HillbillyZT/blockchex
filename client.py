@@ -220,7 +220,7 @@ def viewChain(serverURL):
 
 
 def createConnection(serverURL, newAddress):
-    connectionURL = newAddress + ":5000"
+    connectionURL = "http://" + newAddress + ":5000"
     postURL = serverURL + '/newPeer'
     b = requests.post(postURL, data=connectionURL)
     return
