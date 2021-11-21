@@ -48,7 +48,7 @@ def add_new_peer():
 # Calling /getPeers with GET returns all currently connected peers
 @app.route('/getPeers', methods=['GET'])
 def get_peers():
-    return p2p_http.targets, 200
+    return str(p2p_http.targets), 200
 
 
 # Calling /queryLatest with GET returns the latest block on our blockchain as json
@@ -72,13 +72,15 @@ def receive_query_all():
 @app.route('/receiveBlock', methods=['POST'])
 def receive_broadcast_block():
     if request.remote_addr not in p2p_http.targets:
-        p2p_http.targets.add(request.remote_addr)
+        p2p_http.targets.add("http://" + request.remote_addr + ":5000")
+    
+    print("Incoming peer, addres: " + request.remote_addr)
     
     # Check if received block is just +1, or on different chain
-    print(request.data.decode())
+    # print(request.data.decode())
     block: dict = json.loads(request.data.decode())
     block_obj: blockchain.Block = blockchain.deserialize_block(block)
-    p2p_http.compare_heights(block_obj, request.remote_addr)
+    p2p_http.compare_heights(block_obj, "http://" + request.remote_addr + ":5000")
     return "", 200
 
 

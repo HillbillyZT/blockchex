@@ -1,5 +1,5 @@
 from wallet import get_public_key_from_wallet
-from crypto import Transaction, UnspentTxOut
+from crypto import Transaction, UnspentTxOut, updateUnspent
 from hashlib import sha256
 import logging
 import time
@@ -60,7 +60,10 @@ blockchain: Blockchain = [genesis_block]
 
 
 def calculate_hash(index, previous_hash, timestamp, data, difficulty, nonce):
-    block_string = str(index)+str(previous_hash)+str(timestamp)+str(data) + str(difficulty) + str(nonce)
+    # ds = ""
+    # for item in data:
+    #     ds += str(item)
+    block_string = str(index)+str(previous_hash)+str(timestamp)+ str(data) + str(difficulty) + str(nonce)
     return sha256(block_string.encode()).hexdigest()
 
 
@@ -101,6 +104,13 @@ def get_chain_as_json():
 
 def deserialize_block(d: dict) -> Block:
     b = Block(d['index'], d['hash'], d['previous_hash'], d['timestamp'], d['data'], d['difficulty'], d['nonce'])
+    
+    if not isinstance(b.data, str):
+        newdata = []
+        for item in b.data:
+            newdata.append(crypto.deserialize_tx(item))
+            
+        b.data = newdata
     return b
 
 
@@ -187,7 +197,7 @@ def is_block_structure_valid(block: Block):
            and type(block.hash) is str \
            and type(block.previous_hash) is str \
            and type(block.timestamp) is float \
-           and type(block.data) is str \
+           and type(block.data) is list \
            and type(block.difficulty) is int \
            and type(block.nonce) is int \
            and type(block) is Block
@@ -232,9 +242,11 @@ def get_cumulative_difficulty(chain: Blockchain) -> int:
 # Consensus replacement
 def replace_chain(newchain: Blockchain) -> bool:
     global blockchain
+    global unspentTxOuts
     if is_blockchain_valid(newchain) and get_cumulative_difficulty(newchain) > get_cumulative_difficulty(blockchain):
         print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
-
+        for block in newchain:
+            unspentTxOuts = crypto.updateUnspent(block.data, unspentTxOuts)
         blockchain = newchain
         return True
     else:

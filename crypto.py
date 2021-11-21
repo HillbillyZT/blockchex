@@ -6,7 +6,7 @@ from ecdsa.keys import VerifyingKey
 
 
 # Easy number to do math with :D
-COINBASE_PAYOUT = 10
+COINBASE_PAYOUT: float = 10.0
 
 # Transaction outputs
 class TxOut:
@@ -16,6 +16,9 @@ class TxOut:
     
     def __str__(self) -> str:
         return str(self.address) + str(self.amount)
+    
+    def __repr__(self):
+        return str(self)
 
 
 # Transaction inputs
@@ -27,6 +30,9 @@ class TxIn:
     
     def __str__(self) -> str:
         return str(self.outId) + str(self.outIndex) + str(self.signature)
+    
+    def __repr__(self):
+        return str(self)
 
 
 # Transaction class containing lists of all txs in and out
@@ -38,6 +44,9 @@ class Transaction:
     
     def __str__(self) -> str:
         return str(self.id) + str(self.txIns) + str(self.txOuts)
+    
+    def __repr__(self):
+        return str(self)
     
     def to_dict(u):
         if isinstance(u, Transaction):
@@ -294,6 +303,31 @@ def makeCoinbaseTX(address: str, index: int) -> Transaction:
     return tx
 
     
+# DESERIALIZATION
+def deserialize_txin(txin: dict) -> TxIn:
+    outid = txin['outId']
+    outIndex = txin['outIndex']
+    signature = txin['signature']
+    return TxIn(outid, outIndex, signature)
+
+def deserialize_txout(txout: dict) -> TxOut:
+    address = txout['address']
+    amount = float(txout['amount'])
+    return TxOut(address, amount)
+
+def deserialize_tx(tx: dict) -> Transaction:
+    txid = tx['id']
+    txins = []
+    for txin in tx['txIns']:
+        txins.append(deserialize_txin(txin))
+    
+    txouts = []
+    for txout in tx['txOuts']:
+        txouts.append(deserialize_txout(txout))
+    
+    return Transaction(txid, txins, txouts)
+
+
 
 # ----- Testing ----- #
 

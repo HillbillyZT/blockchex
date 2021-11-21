@@ -58,7 +58,7 @@ def get_balance(address: str, unspentTxOuts: list[UnspentTxOut]) -> float:
 
 def find_required_txouts(amount: float, ourUnspentTxOuts: list[UnspentTxOut]) -> tuple[list[UnspentTxOut], float]:
     # Algorithm from NaiveCoin:
-    current_amount = 0
+    current_amount: float = 0
     inclUTxO: list[UnspentTxOut] = []
     
     for utxo in ourUnspentTxOuts:
@@ -74,7 +74,7 @@ def find_required_txouts(amount: float, ourUnspentTxOuts: list[UnspentTxOut]) ->
 
 # Make sure that we spent the total of the TxOut, sending the extra coins back to ourselves
 def build_txouts(peer_address: str, my_address: str, amount: float, leftover: float):
-    txout: TxOut = TxOut(peer_address, amount)
+    txout: TxOut = TxOut(peer_address, float(amount))
     if leftover == 0:
         return [txout]
     else:

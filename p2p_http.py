@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 import blockchain as bc
 import logging
 import requests
+import crypto
 if TYPE_CHECKING:
     from blockchain import Block, Blockchain
 
@@ -26,7 +27,8 @@ def query_latest(target: str) -> Block:
     # implement request for latest, handle data
     r = requests.get(f"{target}/queryLatest")
     j = r.json()
-    b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'], j['difficulty'], j['nonce'])
+    # b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'], j['difficulty'], j['nonce'])
+    b = bc.deserialize_block(j)
     return b
 
 
