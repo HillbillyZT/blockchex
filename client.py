@@ -13,8 +13,9 @@ import webbrowser
 # Find first private key stored in keys.txt before defining our menu
 # This lets us populate the field on declaration
 # TODO Check if this file exists first
-with open('keys.txt', 'r') as outfile:
-    currentWallet = outfile.readline()
+# with open('keys.txt', 'r') as outfile:
+#     currentWallet = outfile.readline()
+currentWallet = "testing"
 
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
@@ -67,15 +68,16 @@ def txPopup():
 # Might have to thread things eventually so client doesn't lock up when performing a long task
 def runClient(serverURL: str):
     # Initialize window with title, our layout defined above, and a size
-    window = sg.Window('Mining Client', layout, size=(600, 400), finalize=True)
+    window = sg.Window('Mining Client', layout, size=(800, 400), finalize=True)
 
-    with open('keys.txt', 'r') as outfile:
-        currentWallet = outfile.readline()
+    pubkey = wallet.get_public_key_from_wallet().to_string().hex()
+    currentWallet = "Wallet: " + pubkey
     
     
     while True:
-        event, values = window.read()
+        event, values = window.read(timeout=10)
         window['walletText'].update(currentWallet)
+        # window.refresh()
         if event == sg.WIN_CLOSED or event == 'Close':
             saveChain(serverURL)
             break
@@ -98,7 +100,7 @@ def runClient(serverURL: str):
             blockHashResult = lookupBlockHash(serverURL, values['blockHashInput'])
             sg.popup(blockHashResult, keep_on_top=True)
         elif event == 'copyWallet':
-            pyperclip.copy(currentWallet)
+            pyperclip.copy(pubkey)
         elif event == "About":
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
