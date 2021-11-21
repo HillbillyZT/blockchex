@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request
 from os.path import exists
 import wallet
 
+logging.basicConfig(level=logging.INFO)
 
 def jsonDefaultCustom(obj):
     if isinstance(obj, bytes):
@@ -143,7 +144,7 @@ def generate_next_block_generic(data: list[Transaction]):
     solve_block(block)
     
     # Print the block to the console and add it to the chain
-    print(block)
+    logging.info("Block added to chain: " + str(block))
     add_block(block)
     return block
 
@@ -244,14 +245,14 @@ def replace_chain(newchain: Blockchain) -> bool:
     global blockchain
     global unspentTxOuts
     if is_blockchain_valid(newchain) and get_cumulative_difficulty(newchain) > get_cumulative_difficulty(blockchain):
-        print("The new blockchain is valid and longer than the current chain. The chain will be replaced")
+        logging.info("The new blockchain is valid and longer than the current chain. The chain will be replaced")
         for block in newchain:
             if not isinstance(block.data, str):
                 unspentTxOuts = crypto.updateUnspent(block.data, unspentTxOuts)
         blockchain = newchain
         return True
     else:
-        print("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
+        logging.info("The new blockchain is either invalid or shorter than the current chain. It will be discarded.")
         return False
 
 

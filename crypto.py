@@ -1,9 +1,11 @@
 from ecdsa import SigningKey
 from hashlib import sha256
 from functools import reduce
-
+import logging
 from ecdsa.keys import VerifyingKey
 
+
+logging.basicConfig(level=logging.INFO)
 
 # Easy number to do math with :D
 COINBASE_PAYOUT: float = 10.0
@@ -112,13 +114,13 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
 
     # Attempted to sign invalid txout
     if not unspentTxOut:
-        print("This shouldn't happen...")
+        logging.info("This shouldn't happen... (signTxIn)")
         raise Exception('could not find referenced output')
 
     address = unspentTxOut._address
 
     if (getPublicKey(privateKey).to_string().hex() != address):
-        print("Signing key does not match Verifying key.")
+        logging.info("Signing key does not match Verifying key.")
         raise Exception('invalidKey')
 
     truePrivateKey = SigningKey.from_string(bytearray.fromhex(privateKey))
@@ -180,7 +182,7 @@ def validateTxIn(txin: TxIn, tx: Transaction, unspentTxOuts: list[UnspentTxOut])
         utxo._txOutId == txin.outId, unspentTxOuts))
     
     if not referencedUTxO:
-        print("Referenced TxOut not found among specified UnspentTxOuts.")
+        logging.info("Referenced TxOut not found among specified UnspentTxOuts.")
         return False
     
     address = referencedUTxO._address
@@ -198,11 +200,11 @@ def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
 # Validate a full Transaction
 def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> bool:
     if not isValidTransactionStructure(tx):
-        print("TX structure is invalid")
+        logging.info("TX structure is invalid")
         return False
     
     if(getTransactionId(tx) != tx.id):
-        print('Invalid transaction ID: ' + str(tx.id))
+        logging.info('Invalid transaction ID: ' + str(tx.id))
         return False
     
     # Validate all Transaction's TxIns
@@ -210,7 +212,7 @@ def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> b
         map(lambda txin: validateTxIn(txin, tx, unspentTxOuts), tx.txIns))
     
     if not hasAllValidTxIns:
-        print("One or more of the Transaction's TxIns are invalid.")
+        logging.info("One or more of the Transaction's TxIns are invalid.")
         return False
     
     # Sum input and output amounts; can't send more than we spend
@@ -230,27 +232,27 @@ def validateTransaction(tx: Transaction, unspentTxOuts: list[UnspentTxOut]) -> b
 
 def validateCoinbaseTX(tx: Transaction, index: int) -> bool:
     if not tx:
-        print("TX is null")
+        logging.info("TX is null")
         return False
     
     if getTransactionId(tx) != tx.id:
-        print("TXID is invalid")
+        logging.info("TXID is invalid")
         return False
     
     if len(tx.txIns) != 1:
-        print("Coinbase TX requires exactly 1 input")
+        logging.info("Coinbase TX requires exactly 1 input")
         return False
     
     if tx.txIns[0].outIndex != index:
-        print("Coinbase TX must include index and match block index")
+        logging.info("Coinbase TX must include index and match block index")
         return False
     
     if len(tx.txOuts) != 1:
-        print("Coinbase TX requires exactly 1 output.")
+        logging.info("Coinbase TX requires exactly 1 output.")
         return False
     
     if tx.txOuts[0].amount != COINBASE_PAYOUT:
-        print("Coinbase amount is invalid.")
+        logging.info("Coinbase amount is invalid.")
         return False
     
     return True
@@ -259,7 +261,7 @@ def validateCoinbaseTX(tx: Transaction, index: int) -> bool:
 def validateFullBlockTransactions(txs: list[Transaction], unspentTxOuts: list[UnspentTxOut], index: int) -> bool:
     coinbase = txs[0]
     if not validateCoinbaseTX(coinbase, index):
-        print("Invalid coinbase tx")
+        logging.info("Invalid coinbase tx")
         return False
     
     for tx in txs:
@@ -268,7 +270,7 @@ def validateFullBlockTransactions(txs: list[Transaction], unspentTxOuts: list[Un
                 one = str(tx.txIns[i])
                 two = str(tx.txIns[j])
                 if one == two:
-                    print("Duplicate txin")
+                    logging.info("Duplicate txin")
                     return False
     
     nonCoinbase = txs[1:]
@@ -282,11 +284,11 @@ def validateFullBlockTransactions(txs: list[Transaction], unspentTxOuts: list[Un
 def processTransactions(txs: list[Transaction], unspentTxOuts: list[UnspentTxOut], index: int):
     for tx in txs:
         if not isValidTransactionStructure(tx):
-            print("borked")
+            logging.info("borked")
             return None
     
     if not validateFullBlockTransactions(txs, unspentTxOuts, index):
-        print("Invalid transactions in block")
+        logging.info("Invalid transactions in block")
         return None
     
     return updateUnspent(txs, unspentTxOuts)

@@ -97,7 +97,7 @@ def init_target(target: str) -> None:
     try:
         handle_query_latest(target)
     except Exception as e:
-        print(e)
+        logging.info(e)
         targets.remove(target)
 
 

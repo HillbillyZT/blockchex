@@ -8,6 +8,8 @@ import wallet
 from crypto import makePrivateKey
 import keyring
 import webbrowser
+import logging
+logging.basicConfig(level=logging.INFO)
 
 KILL_PROCESS: bool = False
 
@@ -163,7 +165,7 @@ def runClient(serverURL: str):
 def mineBlock(serverURL):
     miningURL = serverURL + '/mine'
     r = requests.post(miningURL)
-    print("Mining successful")
+    logging.info("Mining successful")
 
 
 # Save our current chain to a local text file
@@ -171,9 +173,12 @@ def saveChain(serverURL):
     chainURL = serverURL + '/chain'
     c = requests.get(chainURL)
     data = c.json()
-    print(c.text)
+    # logging.info(c.text)
+    
     with open('chain.txt', 'w') as outfile:
         outfile.write(json.dumps(data))
+    
+    logging.info("Blockchain saved locally.")
 
 
 # Basic functionality for generating a new private key

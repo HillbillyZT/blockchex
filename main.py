@@ -10,6 +10,9 @@ import time
 import socket
 import wallet
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -76,7 +79,7 @@ def receive_broadcast_block():
     if request.remote_addr not in p2p_http.targets:
         p2p_http.targets.add("http://" + request.remote_addr + ":5000")
     
-    print("Incoming peer, addres: " + request.remote_addr)
+    logging.info("Incoming peer, addres: " + request.remote_addr)
     
     # Check if received block is just +1, or on different chain
     # print(request.data.decode())
@@ -138,14 +141,14 @@ if __name__ == '__main__':
     # Check if we have a local copy stored
     if blockchain.does_local_copy_exist():
         blockchain.replace_chain(blockchain.load_local_copy())
-        print("local copy loaded")
+        logging.info("Local blockchain loaded")
 
     # Flask server url is hardcoded until we can figure out how to automatically retrieve it
     #serverURL = 'http://192.168.0.4:5000'
 
     hostURL = socket.gethostbyname(socket.gethostname())
     serverURL = 'http://' + hostURL + ':5000'
-    print("Server URL is: " + serverURL)
+    logging.info("Server URL is: " + serverURL)
 
     # Run server and client on separate threads
     flaskyboi = Thread(target=start_flask)

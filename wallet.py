@@ -2,7 +2,9 @@ from ecdsa.keys import SigningKey, VerifyingKey
 from crypto import TxIn, UnspentTxOut, TxOut, Transaction, getTransactionId, signTxIn
 import crypto
 from os.path import exists
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 # Get from file
 def get_private_key_from_wallet() -> SigningKey:
@@ -90,7 +92,7 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
     
     incl_utxo, leftover = find_required_txouts(amount, my_utxos)
     if isinstance(incl_utxo, bool):
-        print("INSUFFICIENT FUNDS")
+        logging.info("INSUFFICIENT FUNDS")
         return False
     
     # Try this instead of lambda?
@@ -118,10 +120,10 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
     return tx
     
 # Testing
-sk = SigningKey.generate()
-pk: VerifyingKey = sk.get_verifying_key()
+# sk = SigningKey.generate()
+# pk: VerifyingKey = sk.get_verifying_key()
 
-print(sk.to_string().hex())
-print(pk.to_string().hex())
+# print(sk.to_string().hex())
+# print(pk.to_string().hex())
     
     
