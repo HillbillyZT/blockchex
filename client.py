@@ -11,13 +11,6 @@ import webbrowser
 
 KILL_PROCESS: bool = False
 
-# Find first private key stored in keys.txt before defining our menu
-# This lets us populate the field on declaration
-# TODO Check if this file exists first
-# with open('keys.txt', 'r') as outfile:
-#     currentWallet = outfile.readline()
-currentWallet = "testing"
-
 # Set theme https://pysimplegui.readthedocs.io/en/latest/#themes-automatic-coloring-of-your-windows
 sg.theme('DarkBlack1')
 
@@ -164,6 +157,7 @@ def runClient(serverURL: str):
 # ----- Function Definitions ----- #
 # These functions get called within our window loop
 # Perform relevant actions based on function + variable input
+
 
 # Mine a new block via the mining url
 def mineBlock(serverURL):
