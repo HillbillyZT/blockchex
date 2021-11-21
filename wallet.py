@@ -109,7 +109,12 @@ def build_tx(peer_address: str, amount: float, private_key: SigningKey, unspentT
     def signall(txin: TxIn, index):
         txin.signature = signTxIn(tx, index, private_key.to_string().hex(), unspentTxOuts)
         return txin
-    tx.txIns = map(signall, tx.txIns)
+    
+    tx.txIns = [signall(b, a) for (a,b) in enumerate(tx.txIns)]
+        
+    # tx.txIns = list(map(signall, enumerate(tx.txIns)[0], enumerate(tx.txIns)[1]))
+    
+    return tx
     
 # Testing
 sk = SigningKey.generate()

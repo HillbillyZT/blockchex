@@ -85,7 +85,7 @@ def makePrivateKey() -> SigningKey:
 
 # Use our private key to view our public key
 def getPublicKey(privateKey: str) -> str:
-    return SigningKey.from_string(privateKey).verifying_key
+    return SigningKey.from_string(bytearray.fromhex(privateKey)).verifying_key
 
 
 # TODO method to allow users to input private key for access/verification
@@ -108,11 +108,11 @@ def signTxIn(tx: Transaction, txInIndex: int, privateKey: str, unspentTxOuts: li
 
     address = unspentTxOut._address
 
-    if (getPublicKey(privateKey) != address):
+    if (getPublicKey(privateKey).to_string().hex() != address):
         print("Signing key does not match Verifying key.")
         raise Exception('invalidKey')
 
-    truePrivateKey = SigningKey.from_string(privateKey)
+    truePrivateKey = SigningKey.from_string(bytearray.fromhex(privateKey))
 
     signature: bytes = truePrivateKey.sign(payload.encode())
     return signature.hex()
@@ -176,8 +176,10 @@ def validateTxIn(txin: TxIn, tx: Transaction, unspentTxOuts: list[UnspentTxOut])
     
     address = referencedUTxO._address
     
-    verifying_key = VerifyingKey.from_string(address)
-    return verifying_key.verify(txin.signature, tx.id)
+    verifying_key = VerifyingKey.from_string(bytearray.fromhex(address))
+    signature_bytes = bytearray.fromhex(txin.signature)
+    retval = verifying_key.verify(signature_bytes, tx.id.encode())
+    return retval
 
 
 def getTxInAmount(txIn: TxIn, unspentTxOuts: list[UnspentTxOut]) -> float:
