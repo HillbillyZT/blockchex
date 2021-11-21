@@ -1,3 +1,4 @@
+import flask
 from werkzeug.wrappers import request
 import blockchain as blockchain
 import json
@@ -8,6 +9,7 @@ from threading import Thread
 import time
 import socket
 import wallet
+import sys
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -144,10 +146,21 @@ if __name__ == '__main__':
     print("Server URL is: " + serverURL)
 
     # Run server and client on separate threads
-    Thread(target=start_flask).start()
-    Thread(target=client.runClient(serverURL)).start()
+    flaskyboi = Thread(target=start_flask)
+    flaskyboi.setDaemon(True)
+    flaskyboi.start()
+    
+    clientyboi = Thread(target=client.runClient(serverURL))
+    clientyboi.setDaemon(True)
+    clientyboi.start()
 
     # Run an infinite loop of init_p2p
-    while True:
+    while not client.KILL_PROCESS:
         p2p_http.init_P2P()
-        time.sleep(60)
+        for i in range(60):
+            if client.KILL_PROCESS:
+                break
+            time.sleep(1)
+    
+    sys.exit()
+    

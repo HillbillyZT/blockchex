@@ -10,6 +10,8 @@ import keyring
 import webbrowser
 
 
+KILL_PROCESS: bool = False
+
 # Find first private key stored in keys.txt before defining our menu
 # This lets us populate the field on declaration
 # TODO Check if this file exists first
@@ -105,7 +107,8 @@ def runClient(serverURL: str):
             webbrowser.open('https://github.com/HillbillyZT/blockchex#readme')
 
     window.close()
-
+    global KILL_PROCESS
+    KILL_PROCESS = True
 
 # ----- Function Definitions ----- #
 # These functions get called within our window loop
