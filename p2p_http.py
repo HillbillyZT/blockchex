@@ -7,6 +7,8 @@ import crypto
 if TYPE_CHECKING:
     from blockchain import Block, Blockchain
 
+
+
 logging.basicConfig(level=logging.INFO)
 
 # TODO(Chris) add maximum connection limit
@@ -25,7 +27,7 @@ def broadcast_block(b: Block) -> None:
 # Calls /queryLatest from main.py to return the latest block on our local chain
 def query_latest(target: str) -> Block:
     # implement request for latest, handle data
-    r = requests.get(f"http://{target}/queryLatest")
+    r = requests.get(f"{target}/queryLatest")
     j = r.json()
     # b = bc.Block(j['index'], j['hash'], j['previous_hash'], j['timestamp'], j['data'], j['difficulty'], j['nonce'])
     b = bc.deserialize_block(j)
